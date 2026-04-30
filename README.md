@@ -8,9 +8,9 @@ Network I/O extension for [SwiftOSCCore](https://github.com/orchetect/swift-osc-
 
 ## Compatibility
 
-| macOS | iOS  | visionOS | Linux | Android | Windows |
-| :---: | :--: | :------: | :---: | :-----: | :-----: |
-|   🟢   |  🟢   |    🟢     |   🟢   |    🟢    |    -    |
+| macOS | iOS  | tvOS | visionOS | watchOS | Linux | Android | Windows |
+| :---: | :--: | :--: | :------: | :-----: | :---: | :-----: | :-----: |
+|   🟢   |  🟢   |  🟢   |    🟢     |    🟢    |   🟢   |    🟢    |    -    |
 
 ## Getting Started
 
