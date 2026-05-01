@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 import SwiftOSCCore
 import Testing
@@ -81,5 +79,3 @@ extension BinaryInteger {
         + String(self, radix: 16, uppercase: true)
     }
 }
-
-#endif

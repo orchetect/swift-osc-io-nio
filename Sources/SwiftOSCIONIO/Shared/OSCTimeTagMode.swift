@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 
 /// Specifies an OSC server's time tag behavior.
@@ -52,5 +50,3 @@ extension OSCTimeTagMode: Equatable { }
 extension OSCTimeTagMode: Hashable { }
 
 extension OSCTimeTagMode: Sendable { }
-
-#endif

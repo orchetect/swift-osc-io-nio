@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import SwiftOSCCore
 
 /// Received-message handler closure used by SwiftOSCIONIO socket classes.
@@ -15,5 +13,3 @@ public typealias OSCHandlerBlock = @Sendable (
     _ host: String,
     _ port: Int
 ) -> Void
-
-#endif

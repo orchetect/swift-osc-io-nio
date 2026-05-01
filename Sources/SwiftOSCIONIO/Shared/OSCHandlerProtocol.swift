@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 import SwiftOSCCore
 
@@ -115,5 +113,3 @@ extension _OSCHandlerProtocol {
         }
     }
 }
-
-#endif

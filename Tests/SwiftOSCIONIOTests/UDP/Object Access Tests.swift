@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 @testable import SwiftOSCIONIO
 import Testing
 
@@ -98,5 +96,3 @@ struct Object_Access_Tests {
         }
     }
 }
-
-#endif

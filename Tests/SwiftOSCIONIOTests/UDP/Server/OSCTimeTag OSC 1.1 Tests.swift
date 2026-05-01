@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 @testable import SwiftOSCIONIO
 import Testing
 
@@ -110,5 +108,3 @@ struct OSCTimeTag_OSC1_1_Tests {
         }
     }
 }
-
-#endif

@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 import NIO
 
@@ -287,5 +285,3 @@ extension OSCTCPServer {
         _clients[clientID] = nil
     }
 }
-
-#endif

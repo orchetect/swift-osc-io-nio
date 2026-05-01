@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 protocol _OSCTCPGeneratesClientNotificationsProtocol {
     func _generateConnectedNotification()
 
@@ -13,5 +11,3 @@ protocol _OSCTCPGeneratesClientNotificationsProtocol {
         error: (any Error)?
     )
 }
-
-#endif

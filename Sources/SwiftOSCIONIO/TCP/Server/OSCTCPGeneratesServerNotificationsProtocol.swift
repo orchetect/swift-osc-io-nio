@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 protocol _OSCTCPGeneratesServerNotificationsProtocol {
     func _generateConnectedNotification(
         remoteHost: String,
@@ -20,5 +18,3 @@ protocol _OSCTCPGeneratesServerNotificationsProtocol {
         error: (any Error)?
     )
 }
-
-#endif

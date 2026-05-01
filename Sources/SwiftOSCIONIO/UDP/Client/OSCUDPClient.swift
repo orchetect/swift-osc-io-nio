@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 import NIO
 
@@ -229,5 +227,3 @@ extension OSCUDPClient {
         try send(.message(oscMessage), to: host, port: port)
     }
 }
-
-#endif

@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 import NIO
 
@@ -62,5 +60,3 @@ extension OSCTCPClientChannelHandler: ChannelInboundHandler {
         context.close(promise: nil)
     }
 }
-
-#endif

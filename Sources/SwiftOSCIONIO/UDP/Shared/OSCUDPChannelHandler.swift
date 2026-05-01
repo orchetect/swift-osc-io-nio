@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 import NIO
 
@@ -60,5 +58,3 @@ extension OSCUDPChannelHandler {
 }
 
 extension OSCUDPChannelHandler: @unchecked Sendable { }
-
-#endif

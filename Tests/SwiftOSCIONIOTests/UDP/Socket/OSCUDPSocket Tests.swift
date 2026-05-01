@@ -4,8 +4,6 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if !os(watchOS)
-
 import Foundation
 @testable import SwiftOSCIONIO
 import Testing
@@ -199,5 +197,3 @@ struct OSCUDPSocket_Tests {
     }
     #endif
 }
-
-#endif

@@ -4,10 +4,10 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-#if canImport(Darwin)
-import struct Foundation.Data
-#else
+#if canImport(FoundationEssentials)
 import struct FoundationEssentials.Data
+#else
+import struct Foundation.Data
 #endif
 
 @testable import SwiftOSCIONIO
