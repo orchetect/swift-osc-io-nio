@@ -1,7 +1,7 @@
 //
 //  OSCTCPFramingMode.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 /// Packet framing modes for TCP-based OSC sockets.
@@ -13,7 +13,7 @@ public enum OSCTCPFramingMode {
     /// > While the OSC 1.0 Spec does not specifically determine this framing method, it was widely adopted by
     /// > manufacturers of software and hardware using OSC 1.0 over TCP.
     case osc1_0
-    
+
     /// OSC 1.1 mode: SLIP (RFC 1055) with a double END character encoding.
     ///
     /// > OSC 1.1 Specification:
@@ -26,7 +26,7 @@ public enum OSCTCPFramingMode {
     ///
     /// See [RFC 1055 Specification](https://www.rfc-editor.org/rfc/rfc1055.txt)
     case osc1_1
-    
+
     // TODO: 'none' is implemented in the codebase, however there is an issue with OSCTCPServer where more than one received packet may be contained in the data received.
     /// None: Send OSC packet bytes as-is.
     @available(*, unavailable, message: "Not yet implemented.")

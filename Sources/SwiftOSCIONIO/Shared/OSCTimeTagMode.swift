@@ -1,7 +1,7 @@
 //
 //  OSCTimeTagMode.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -28,7 +28,7 @@ public enum OSCTimeTagMode {
     /// Adopt OSC 1.0 spec behavior where time tags may be used to schedule received OSC bundles to
     /// be dispatched at a future time.
     case osc1_0
-    
+
     /// Ignore time tags present in OSC bundles.
     /// All received OSC bundles are handled immediately when received and no scheduling will occur.
     ///

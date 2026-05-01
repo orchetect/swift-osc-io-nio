@@ -1,7 +1,7 @@
 //
 //  Packet Length Header Coding.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if canImport(Darwin)
@@ -19,40 +19,40 @@ extension Data {
             .toData(byteOrder)
         return length + self
     }
-    
+
     /// Decodes data that may contain one or more packet-length header framed datagrams.
     ///
     /// The structure is one or more of: a UInt32 length value followed by a sequence of bytes of that length.
     func packetLengthHeaderDecoded(byteOrder: ByteOrder = .platformDefault) throws(OSCTCPPacketLengthHeaderDecodingError) -> [Data] {
         var sequences: [SubSequence] = []
-        
+
         var offset: Index = startIndex
-        
+
         while offset < endIndex {
             guard offset + 4 <= endIndex else {
                 throw .notEnoughBytes
             }
             let lengthFieldRange = offset ..< offset + 4
-            
+
             guard let length = self[lengthFieldRange]
                 .toUInt32(from: byteOrder)
             else {
                 throw .notEnoughBytes
             }
-            
+
             offset = lengthFieldRange.endIndex
-            
+
             guard offset + Int(length) <= endIndex else {
                 throw .notEnoughBytes
             }
             let packetRange = offset ..< offset + Int(length)
-            
+
             offset = packetRange.endIndex
-            
+
             let sequence: SubSequence = self[packetRange]
             sequences.append(sequence)
         }
-        
+
         return sequences
     }
 }

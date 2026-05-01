@@ -1,7 +1,7 @@
 //
 //  OSCTCPServer ClientConnection.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -18,9 +18,9 @@ extension OSCTCPServer {
         let remoteHost: String // cached, since Channel resets it upon disconnection
         let remotePort: Int // cached, since Channel resets it upon disconnection
         let framingMode: OSCTCPFramingMode
-        
+
         init(
-            server: (any _OSCTCPHandlerProtocol & _OSCTCPGeneratesServerNotificationsProtocol),
+            server: any _OSCTCPHandlerProtocol & _OSCTCPGeneratesServerNotificationsProtocol,
             channel: any Channel,
             clientID: OSCTCPClientSessionID,
             framingMode: OSCTCPFramingMode
@@ -34,7 +34,7 @@ extension OSCTCPServer {
             self.clientID = clientID
             self.framingMode = framingMode
         }
-        
+
         deinit {
             close()
         }
@@ -57,11 +57,11 @@ extension OSCTCPServer.ClientConnection: _OSCTCPSendProtocol {
     func send(_ oscPacket: OSCPacket) throws {
         try _send(oscPacket)
     }
-    
+
     func send(_ oscBundle: OSCBundle) throws {
         try _send(oscBundle)
     }
-    
+
     func send(_ oscMessage: OSCMessage) throws {
         try _send(oscMessage)
     }
@@ -71,11 +71,11 @@ extension OSCTCPServer.ClientConnection: _OSCTCPHandlerProtocol {
     var queue: DispatchQueue {
         oscServer?.queue ?? .global()
     }
-    
+
     var timeTagMode: OSCTimeTagMode {
         oscServer?.timeTagMode ?? .ignore
     }
-    
+
     var receiveHandler: OSCHandlerBlock? {
         oscServer?.receiveHandler
     }
@@ -89,7 +89,7 @@ extension OSCTCPServer.ClientConnection: _OSCTCPGeneratesClientNotificationsProt
             clientID: clientID
         )
     }
-    
+
     func _generateDisconnectedNotification(error: (any Error)?) {
         oscServer?._generateDisconnectedNotification(
             remoteHost: remoteHost,

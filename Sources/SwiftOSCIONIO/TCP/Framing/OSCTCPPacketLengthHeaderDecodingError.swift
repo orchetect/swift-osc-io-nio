@@ -1,7 +1,7 @@
 //
 //  OSCTCPPacketLengthHeaderDecodingError.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if canImport(Darwin)
@@ -13,7 +13,7 @@ import protocol Foundation.LocalizedError
 /// Error cases thrown while decoding packet data encoded with packet-length header framing.
 public enum OSCTCPPacketLengthHeaderDecodingError: LocalizedError, Equatable, Hashable {
     case notEnoughBytes
-    
+
     public var errorDescription: String? {
         switch self {
         case .notEnoughBytes:

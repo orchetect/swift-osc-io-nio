@@ -1,7 +1,7 @@
 //
 //  Object Access Tests.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -10,26 +10,27 @@
 import Testing
 
 /// No functionality tests, just test that API compiles as expected.
-@Suite struct Object_Access_Tests {
+@Suite
+struct Object_Access_Tests {
     @Test
-    func oscClientAccess() async throws {
+    func oscClientAccess() {
         let oscClient = OSCUDPClient()
-        
+
         oscClient.isIPv4BroadcastEnabled = true
         oscClient.isIPv4BroadcastEnabled = false
         oscClient.isPortReuseEnabled = true
         oscClient.isPortReuseEnabled = false
-        
+
         _ = OSCUDPClient(localPort: 8002)
         _ = OSCUDPClient(localPort: 8003, isPortReuseEnabled: true)
         _ = OSCUDPClient(localPort: 8004, isPortReuseEnabled: true, isIPv4BroadcastEnabled: true)
         _ = OSCUDPClient(localPort: 8005, isIPv4BroadcastEnabled: true)
     }
-    
+
     @Test
-    func oscServerAccess() async throws {
+    func oscServerAccess() {
         let oscServer = OSCUDPServer()
-        
+
         _ = oscServer.isStarted
         _ = oscServer.localPort
         // oscServer.localPort = 9000 // immutable actor
@@ -39,7 +40,7 @@ import Testing
             print(message)
         }
         // oscServer.receiveHandler = { _,_ in } // immutable actor, use `setReceiveHandler()` instead
-        
+
         _ = OSCUDPServer(port: 8006) { message, timeTag, host, port in
             print(message)
         }
@@ -47,11 +48,11 @@ import Testing
             print(message)
         }
     }
-    
+
     @Test
-    func oscSocketAccess() async throws {
+    func oscSocketAccess() {
         let oscSocket = OSCUDPSocket()
-        
+
         _ = oscSocket.isStarted
         _ = oscSocket.localPort
         // oscSocket.localPort = 9000 // immutable actor
@@ -65,7 +66,7 @@ import Testing
             print(message)
         }
         // oscSocket.receiveHandler = { _,_ in } // immutable actor, use `setReceiveHandler()` instead
-        
+
         _ = OSCUDPSocket(localPort: 8009)
         _ = OSCUDPSocket(localPort: 8010) { message, timeTag, host, port in
             print(message)

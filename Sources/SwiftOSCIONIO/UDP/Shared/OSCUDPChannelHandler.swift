@@ -1,7 +1,7 @@
 //
 //  OSCUDPChannelHandler.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -11,7 +11,7 @@ import NIO
 
 final class OSCUDPChannelHandler {
     weak var oscServer: (any _OSCHandlerProtocol)?
-    
+
     init(oscServer: (any _OSCHandlerProtocol)? = nil) {
         self.oscServer = oscServer
     }
@@ -20,22 +20,22 @@ final class OSCUDPChannelHandler {
 extension OSCUDPChannelHandler: ChannelInboundHandler {
     typealias InboundIn = AddressedEnvelope<ByteBuffer>
     typealias OutboundOut = AddressedEnvelope<ByteBuffer>
-    
+
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         var envelope: InboundIn = unwrapInboundIn(data)
-        
+
         // get byte length of envelope
         let byteLength = envelope.data.readableBytes
         // read bytes from envelope
         guard let bytes = envelope.data.readBytes(length: byteLength) else { return /* throw error */ }
         // convert bytes into data
         let data = Data(bytes)
-        
+
         guard let oscServer else { return }
-        
+
         let remoteHost = envelope.remoteAddress.ipAddress ?? ""
         let remotePort = Int(envelope.remoteAddress.port ?? 0)
-        
+
         _handle(oscServer: oscServer, data: data, remoteHost: remoteHost, remotePort: remotePort)
     }
 }

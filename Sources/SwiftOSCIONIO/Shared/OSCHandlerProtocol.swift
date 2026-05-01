@@ -1,7 +1,7 @@
 //
 //  OSCHandlerProtocol.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -37,7 +37,7 @@ extension _OSCHandlerProtocol {
                         remotePort: remotePort
                     )
                 }
-                
+
             case let .message(message):
                 self._schedule(
                     message,
@@ -48,7 +48,7 @@ extension _OSCHandlerProtocol {
             }
         }
     }
-    
+
     private func _schedule(
         _ message: OSCMessage,
         at timeTag: OSCTimeTag = .immediate(),
@@ -58,21 +58,21 @@ extension _OSCHandlerProtocol {
         switch timeTagMode {
         case .ignore:
             _dispatch(message, timeTag: timeTag, remoteHost: remoteHost, remotePort: remotePort)
-            
+
         case .osc1_0:
             // TimeTag of 1 has special meaning in OSC to dispatch "now".
             if timeTag.isImmediate {
                 _dispatch(message, timeTag: timeTag, remoteHost: remoteHost, remotePort: remotePort)
                 return
             }
-            
+
             // If Time Tag is <= now, dispatch immediately.
             // Otherwise, schedule message for future dispatch.
             guard timeTag.isFuture else {
                 _dispatch(message, timeTag: timeTag, remoteHost: remoteHost, remotePort: remotePort)
                 return
             }
-            
+
             let secondsFromNow = timeTag.timeIntervalSinceNow()
             _dispatch(
                 message,
@@ -83,7 +83,7 @@ extension _OSCHandlerProtocol {
             )
         }
     }
-    
+
     private func _dispatch(
         _ message: OSCMessage,
         timeTag: OSCTimeTag,
@@ -94,7 +94,7 @@ extension _OSCHandlerProtocol {
             self.receiveHandler?(message, timeTag, remoteHost, remotePort)
         }
     }
-    
+
     private func _dispatch(
         _ message: OSCMessage,
         timeTag: OSCTimeTag,
@@ -108,7 +108,7 @@ extension _OSCHandlerProtocol {
             _dispatch(message, timeTag: timeTag, remoteHost: remoteHost, remotePort: remotePort)
             return
         }
-        
+
         let usec = Int(secondsFromNow * TimeInterval(1_000_000))
         queue.asyncAfter(deadline: .now() + .microseconds(usec)) { [weak self] in
             self?.receiveHandler?(message, timeTag, remoteHost, remotePort)

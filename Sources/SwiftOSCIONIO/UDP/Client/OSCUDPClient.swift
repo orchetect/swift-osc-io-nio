@@ -1,7 +1,7 @@
 //
 //  OSCUDPClient.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -15,7 +15,7 @@ import NIO
 /// can be used to send OSC messages to one or more receivers on the network.
 public final class OSCUDPClient {
     private var channel: (any Channel)?
-    
+
     /// Local UDP port used by the client from which to send OSC packets. (This is not the remote port
     /// which is specified each time a call to ``send(_:to:port:)-(OSCPacket,_,_)`` is made.)
     /// This may only be set at the time of initialization.
@@ -33,10 +33,10 @@ public final class OSCUDPClient {
     }
 
     private var _localPort: Int?
-    
+
     /// Network interface to restrict connections to.
     public private(set) var interface: String?
-    
+
     /// Enable local UDP port reuse by other processes.
     /// This property must be set prior to calling ``start()`` in order to take effect.
     ///
@@ -45,7 +45,7 @@ public final class OSCUDPClient {
     /// this functionality in the socket. All processes that wish to use the address & port
     /// simultaneously must all enable reuse port on the socket bound to that port.
     public var isPortReuseEnabled: Bool = false
-    
+
     /// Enable sending IPv4 broadcast messages from the socket.
     /// This may be set at any time.
     ///
@@ -78,19 +78,19 @@ public final class OSCUDPClient {
     }
 
     private var _isIPv4BroadcastEnabled: Bool = false
-    
+
     /// Returns a boolean indicating whether the OSC client has been started.
     public var isStarted: Bool {
         channel?.isActive ?? false
     }
-    
+
     /// Initialize an OSC client to send messages using the UDP network protocol.
     ///
     /// A random available port in the system will be chosen.
     ///
     /// Using this initializer does not require calling ``start()``.
     public init() { }
-    
+
     /// Initialize an OSC client to send messages using the UDP network protocol using a specific local port.
     ///
     /// > Note:
@@ -124,13 +124,13 @@ public final class OSCUDPClient {
         isIPv4BroadcastEnabled: Bool = false
     ) {
         self.init()
-        
+
         _localPort = (localPort == nil || localPort == 0) ? nil : localPort
         self.interface = interface
         self.isPortReuseEnabled = isPortReuseEnabled
         self.isIPv4BroadcastEnabled = isIPv4BroadcastEnabled
     }
-    
+
     deinit {
         stop()
     }
@@ -146,14 +146,14 @@ extension OSCUDPClient {
     /// initialization or if class properties were modified after initialization.
     public func start() throws {
         guard !isStarted else { return }
-        
+
         stop()
-        
+
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
         let broadcast: ChannelOptions.Types.SocketOption.Value = _isIPv4BroadcastEnabled ? 1 : 0
         let host: String = interface ?? "0.0.0.0"
         let port: Int = _localPort ?? 0
-        
+
         // Channel Setup
         channel = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             // configure port reuse
@@ -165,7 +165,7 @@ extension OSCUDPClient {
                 // wait for resolution of the `EventLoopFuture`
                 .wait()
     }
-    
+
     /// Closes the OSC port.
     public func stop() {
         // close channel -> opportunity for completion handler
@@ -187,15 +187,15 @@ extension OSCUDPClient {
         port: Int = 8000
     ) throws {
         let data = try oscPacket.rawData()
-        
+
         if !isStarted {
             try start()
         }
-        
+
         guard let channel else {
             throw OSCSocketError.notStarted
         }
-        
+
         // resolve host and port to `SocketAddress`
         let remoteAddress = try SocketAddress.makeAddressResolvingHost(host, port: port)
         // create buffer from data
@@ -204,7 +204,7 @@ extension OSCUDPClient {
         let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
         channel.writeAndFlush(envelope, promise: nil)
     }
-    
+
     /// Send an OSC bundle ad-hoc to a recipient on the network.
     ///
     /// The default port for OSC communication is 8000 but may change depending on device/software
@@ -216,7 +216,7 @@ extension OSCUDPClient {
     ) throws {
         try send(.bundle(oscBundle), to: host, port: port)
     }
-    
+
     /// Send an OSC message ad-hoc to a recipient on the network.
     ///
     /// The default port for OSC communication is 8000 but may change depending on device/software

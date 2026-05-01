@@ -1,7 +1,7 @@
 //
 //  OSCUDPServer.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -18,10 +18,10 @@ public final class OSCUDPServer {
     private var channel: (any Channel)?
     let queue: DispatchQueue
     var receiveHandler: OSCHandlerBlock?
-    
+
     /// Time tag mode. Determines how OSC bundle time tags are handled.
     public var timeTagMode: OSCTimeTagMode
-    
+
     /// UDP port used by the OSC server to listen for inbound OSC packets.
     /// This may only be set at the time of initialization.
     public var localPort: Int {
@@ -32,10 +32,10 @@ public final class OSCUDPServer {
     }
 
     private var _localPort: Int?
-    
+
     /// Network interface to restrict connections to.
     public private(set) var interface: String?
-    
+
     /// Enable local UDP port reuse by other processes.
     /// This property must be set prior to calling ``start()`` in order to take effect.
     ///
@@ -48,7 +48,7 @@ public final class OSCUDPServer {
     /// or multicast messages for any additional sockets which bind to the same address and port. Unicast
     /// messages are only received by the first socket to bind.
     public var isPortReuseEnabled: Bool = false
-    
+
     /// Returns a boolean indicating whether the OSC server has been started.
     public var isStarted: Bool {
         channel?.isActive ?? false
@@ -98,13 +98,13 @@ extension OSCUDPServer {
     /// Bind the local UDP port and begin listening for OSC packets.
     public func start() throws {
         guard !isStarted else { return }
-        
+
         stop()
-        
+
         let handler = OSCUDPChannelHandler(oscServer: self)
         let host: String = interface ?? "0.0.0.0"
         let port: Int = _localPort ?? 0
-        
+
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
         channel = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
@@ -114,7 +114,7 @@ extension OSCUDPServer {
             .bind(host: host, port: port)
             .wait()
     }
-    
+
     /// Stops listening for data and closes the OSC server port.
     public func stop() {
         channel?.close(promise: nil)

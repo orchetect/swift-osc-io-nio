@@ -1,14 +1,14 @@
 //
 //  OSCHandlerBlock.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
 
 import SwiftOSCCore
 
-/// Received-message handler closure used by SwiftOSCCore socket classes.
+/// Received-message handler closure used by SwiftOSCIONIO socket classes.
 public typealias OSCHandlerBlock = @Sendable (
     _ message: OSCMessage,
     _ timeTag: OSCTimeTag,

@@ -1,7 +1,7 @@
 //
 //  OSCTCPClient.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -25,30 +25,30 @@ public final class OSCTCPClient {
     let queue: DispatchQueue
     var receiveHandler: OSCHandlerBlock?
     var notificationHandler: NotificationHandlerBlock?
-    
+
     /// Notification handler closure.
     public typealias NotificationHandlerBlock = @Sendable (_ notification: Notification) -> Void
-    
+
     /// Time tag mode. Determines how OSC bundle time tags are handled.
     public var timeTagMode: OSCTimeTagMode
-    
+
     /// Remote network hostname.
     public let remoteHost: String
-    
+
     /// Remote network port.
     public let remotePort: Int
-    
+
     /// Network interface to restrict connections to.
     public let interface: String?
-    
+
     /// Returns a boolean indicating whether the OSC socket is connected to the remote host.
     public var isConnected: Bool {
         channel?.isActive ?? false
     }
-    
+
     /// TCP packet framing mode.
     public let framingMode: OSCTCPFramingMode
-    
+
     /// Initialize with a remote hostname and UDP port.
     ///
     /// > Note:
@@ -83,7 +83,7 @@ public final class OSCTCPClient {
         self.queue = queue
         self.receiveHandler = receiveHandler
     }
-    
+
     deinit {
         close()
     }
@@ -101,7 +101,7 @@ extension OSCTCPClient {
     public func connect(timeout: TimeInterval = 5.0) throws {
         // negative values mean indefinite (no timeout) which is a bit dangerous
         let timeout = Int64(max(1.0, timeout))
-        
+
         let handler = OSCTCPClientChannelHandler(oscServer: self)
         // create the client bootstrap
         let bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
@@ -119,18 +119,18 @@ extension OSCTCPClient {
                     try channel.pipeline.syncOperations.addHandler(handler)
                 }
             }
-        
+
         // connect to host
         channel = try bootstrap
             .connect(host: remoteHost, port: remotePort)
             .wait()
     }
-    
+
     /// Close the connection, if any.
     public func close() {
-        //close the connection
+        // close the connection
         channel?.close(promise: nil)
-        //deallocate channel
+        // deallocate channel
         channel = nil
     }
 }
@@ -142,12 +142,12 @@ extension OSCTCPClient: _OSCTCPSendProtocol {
     public func send(_ oscPacket: OSCPacket) throws {
         try _send(oscPacket)
     }
-    
+
     /// Send an OSC bundle to the host.
     public func send(_ oscBundle: OSCBundle) throws {
         try _send(oscBundle)
     }
-    
+
     /// Send an OSC message to the host.
     public func send(_ oscMessage: OSCMessage) throws {
         try _send(oscMessage)
@@ -159,7 +159,7 @@ extension OSCTCPClient: _OSCTCPGeneratesClientNotificationsProtocol {
         let notif: Notification = .connected
         notificationHandler?(notif)
     }
-    
+
     func _generateDisconnectedNotification(error: (any Error)?) {
         let notif: Notification = .disconnected(error: error)
         notificationHandler?(notif)
@@ -182,7 +182,7 @@ extension OSCTCPClient {
             self.receiveHandler = handler
         }
     }
-    
+
     /// Set the notification handler closure.
     /// This closure will be called when a notification is generated, such as connection and disconnection events.
     public func setNotificationHandler(

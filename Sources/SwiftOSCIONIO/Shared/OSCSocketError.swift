@@ -1,7 +1,7 @@
 //
 //  OSCSocketError.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -12,7 +12,7 @@ public enum OSCSocketError: LocalizedError, Equatable, Hashable, Sendable {
     case notStarted
     case noRemoteHost
     case clientNotFound(OSCTCPClientSessionID)
-    
+
     public var errorDescription: String? {
         switch self {
         case .notStarted:

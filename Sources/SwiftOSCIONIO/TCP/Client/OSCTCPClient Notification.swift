@@ -1,7 +1,7 @@
 //
 //  OSCTCPClient Notification.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -11,7 +11,7 @@ extension OSCTCPClient {
     public enum Notification {
         /// The client successfully connected to the remote server.
         case connected
-        
+
         /// The client was disconnected from the remote server.
         /// If the disconnection was a result of an error, the error will be non-nil.
         case disconnected(error: (any Error)?)
@@ -24,7 +24,7 @@ extension OSCTCPClient.Notification: Equatable {
         // Both are connected
         case (.connected, .connected):
             return true
-            
+
         case let (.disconnected(leftErr), .disconnected(rightErr)):
             switch (leftErr, rightErr) {
             // Both Errors are nil

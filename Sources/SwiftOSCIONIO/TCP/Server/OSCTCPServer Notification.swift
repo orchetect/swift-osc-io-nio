@@ -1,7 +1,7 @@
 //
 //  OSCTCPServer Notification.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -11,7 +11,7 @@ extension OSCTCPServer {
     public enum Notification {
         /// The server accepted a connection from a remote client.
         case connected(remoteHost: String, remotePort: Int, clientID: OSCTCPClientSessionID)
-        
+
         /// The server was notified that a remote client connection has closed.
         /// If the disconnection was a result of an error, the error will be non-nil.
         case disconnected(remoteHost: String, remotePort: Int, clientID: OSCTCPClientSessionID, error: (any Error)?)
@@ -29,7 +29,7 @@ extension OSCTCPServer.Notification: Equatable {
             .disconnected(rightHost, rightPort, rightClientID, rightError)
         ):
             // all variables (except error) must be the same to continue, else false
-            guard (leftHost == rightHost), leftPort == rightPort, leftClientID == rightClientID else { return false }
+            guard leftHost == rightHost, leftPort == rightPort, leftClientID == rightClientID else { return false }
             // check if errors are the same
             switch (leftError, rightError) {
             // if both nil, then true
@@ -66,7 +66,7 @@ extension OSCTCPServer.Notification: Hashable {
         }
     }
 }
-    
+
 extension OSCTCPServer.Notification: Sendable { }
 
 #endif

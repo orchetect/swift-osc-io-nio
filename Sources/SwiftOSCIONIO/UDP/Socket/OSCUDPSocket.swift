@@ -1,7 +1,7 @@
 //
 //  OSCUDPSocket.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -25,15 +25,15 @@ public final class OSCUDPSocket {
     private var channel: (any Channel)?
     let queue: DispatchQueue
     var receiveHandler: OSCHandlerBlock?
-    
+
     /// Time tag mode. Determines how OSC bundle time tags are handled.
     public var timeTagMode: OSCTimeTagMode
-    
+
     /// Remote network hostname.
     /// If non-nil, this host will be used in calls to ``send(_:to:port:)-(OSCPacket,_,_)``. The host may still be
     /// overridden using the `host` parameter in the call to ``send(_:to:port:)-(OSCPacket,_,_)``..
     public var remoteHost: String?
-    
+
     /// Local UDP port used to both send OSC packets from and listen for incoming packets.
     /// This may only be set at the time of initialization.
     ///
@@ -53,7 +53,7 @@ public final class OSCUDPSocket {
     }
 
     private var _localPort: Int?
-    
+
     /// UDP port used by to send OSC packets. This may be set at any time.
     /// This port will be used in calls to ``send(_:to:port:)-(OSCPacket,_,_)``. The port may still be overridden
     /// using the `port` parameter in the call to ``send(_:to:port:)-(OSCPacket,_,_)``.
@@ -66,10 +66,10 @@ public final class OSCUDPSocket {
     }
 
     private var _remotePort: Int?
-    
+
     /// Network interface to restrict connections to.
     public private(set) var interface: String?
-    
+
     /// Enable sending IPv4 broadcast messages from the socket.
     ///
     /// By default, the socket will not allow you to send broadcast messages as a network safeguard
@@ -91,12 +91,12 @@ public final class OSCUDPSocket {
     /// Internet Protocol version 6 (IPv6) does not implement this method of broadcast, and
     /// therefore does not define broadcast addresses. Instead, IPv6 uses multicast addressing.
     public let isIPv4BroadcastEnabled: Bool
-    
+
     /// Returns a boolean indicating whether the OSC socket has been started.
     public var isStarted: Bool {
         channel?.isActive ?? false
     }
-    
+
     /// Initialize with a remote hostname and UDP port.
     ///
     /// > Note:
@@ -146,10 +146,10 @@ extension OSCUDPSocket {
     /// Bind the local UDP port and begin listening for OSC packets.
     public func start() throws {
         guard !isStarted else { return }
-        
+
         let host: String = interface ?? "0.0.0.0"
         let port: Int = _localPort ?? 0
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
         let bootstrap = DatagramBootstrap(group: group)
@@ -157,10 +157,10 @@ extension OSCUDPSocket {
             .channelInitializer { channel in
                 channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
             }
-        
+
         channel = try bootstrap.bind(host: host, port: port).wait()
     }
-    
+
     /// Stops listening for data and closes the OSC port.
     public func stop() {
         try? channel?.close().wait()
@@ -185,24 +185,24 @@ extension OSCUDPSocket {
         guard let channel, isStarted else {
             throw OSCSocketError.notStarted
         }
-        
+
         guard let toHost = host ?? remoteHost else {
             throw OSCSocketError.noRemoteHost
         }
-        
+
         let data = try oscPacket.rawData()
-        
+
         let port = (port ?? remotePort)
-        
+
         let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
-                
+
         let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
-        
+
         let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
-                
+
         try channel.writeAndFlush(envelope).wait()
     }
-    
+
     /// Send an OSC bundle to the remote host.
     /// The ``remoteHost`` and ``remotePort`` properties are used unless one or both are
     /// overridden in this call.
@@ -216,7 +216,7 @@ extension OSCUDPSocket {
     ) throws {
         try send(.bundle(oscBundle), to: host, port: port)
     }
-    
+
     /// Send an OSC message to the remote host.
     /// The ``remoteHost`` and ``remotePort`` properties are used unless one or both are
     /// overridden in this call.

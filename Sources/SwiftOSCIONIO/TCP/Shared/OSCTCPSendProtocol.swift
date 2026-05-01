@@ -1,7 +1,7 @@
 //
 //  OSCTCPSendProtocol.swift
-//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
-//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 #if !os(watchOS)
@@ -25,7 +25,7 @@ extension _OSCTCPSendProtocol {
     func _send(_ oscPacket: OSCPacket) throws {
         try _send(oscPacket.rawData())
     }
-    
+
     /// Send an OSC bundle.
     ///
     /// - Parameters:
@@ -35,7 +35,7 @@ extension _OSCTCPSendProtocol {
     func _send(_ oscBundle: OSCBundle) throws {
         try _send(oscBundle.rawData())
     }
-    
+
     /// Send an OSC message.
     ///
     /// - Parameters:
@@ -45,7 +45,7 @@ extension _OSCTCPSendProtocol {
     func _send(_ oscMessage: OSCMessage) throws {
         try _send(oscMessage.rawData())
     }
-    
+
     /// Send an OSC packet.
     ///
     /// - Parameters:
@@ -56,23 +56,23 @@ extension _OSCTCPSendProtocol {
         guard let channel else {
             throw OSCSocketError.notStarted
         }
-        
+
         // frame data
         let data: Data = switch framingMode {
         case .osc1_0:
             // OSC packet framed using a packet-length header
             // 4-byte int for size
             oscData.packetLengthHeaderEncoded(byteOrder: .bigEndian)
-            
+
         case .osc1_1:
             // OSC packet framed using SLIP (double END) protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
             oscData.slipEncoded()
-            
+
         case .none:
             // no framing, send OSC bytes as-is
             oscData
         }
-        
+
         // send packet
         var buffer = channel.allocator.buffer(capacity: data.count)
         buffer.writeBytes(data)
