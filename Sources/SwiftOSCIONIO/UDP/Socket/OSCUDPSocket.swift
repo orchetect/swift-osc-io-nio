@@ -1,0 +1,251 @@
+//
+//  OSCUDPSocket.swift
+//  SwiftOSCCore • https://github.com/orchetect/SwiftOSCCore
+//  © 2020-2026 Steffan Andrews • Licensed under MIT License
+//
+
+#if !os(watchOS)
+
+import Foundation
+import NIO
+
+/// Sends and receives OSC packets over the network by binding a single local UDP port to both send
+/// OSC packets from and listen for incoming packets.
+///
+/// The `OSCUDPSocket` object internally combines both an OSC server and client sharing the same local
+/// UDP port number. What sets it apart from ``OSCUDPServer`` and ``OSCUDPClient`` is that it does not
+/// require enabling port reuse to accomplish this. It also can conceptually make communicating
+/// bidirectionally with a single remote host more intuitive.
+///
+/// This also fulfils a niche requirement for communicating with OSC devices such as the Behringer
+/// X32 & M32 which respond back using the UDP port that they receive OSC messages from. For
+/// example: if an OSC message was sent from port 8000 to the X32's port 10023, the X32 will respond
+/// by sending OSC messages back to you on port 8000.
+public final class OSCUDPSocket {
+    private var channel: (any Channel)?
+    let queue: DispatchQueue
+    var receiveHandler: OSCHandlerBlock?
+    
+    /// Time tag mode. Determines how OSC bundle time tags are handled.
+    public var timeTagMode: OSCTimeTagMode
+    
+    /// Remote network hostname.
+    /// If non-nil, this host will be used in calls to ``send(_:to:port:)-(OSCPacket,_,_)``. The host may still be
+    /// overridden using the `host` parameter in the call to ``send(_:to:port:)-(OSCPacket,_,_)``..
+    public var remoteHost: String?
+    
+    /// Local UDP port used to both send OSC packets from and listen for incoming packets.
+    /// This may only be set at the time of initialization.
+    ///
+    /// The default port for OSC communication is 8000 but may change depending on device/software
+    /// manufacturer.
+    ///
+    /// > Note:
+    /// >
+    /// > If `localPort` was not specified at the time of initialization, reading this
+    /// > property may return a value of `0` until the first successful call to ``send(_:to:port:)-(OSCPacket,_,_)``
+    /// > is made.
+    public var localPort: Int {
+        if let port = channel?.localAddress?.port {
+            return Int(port)
+        }
+        return _localPort ?? 0
+    }
+
+    private var _localPort: Int?
+    
+    /// UDP port used by to send OSC packets. This may be set at any time.
+    /// This port will be used in calls to ``send(_:to:port:)-(OSCPacket,_,_)``. The port may still be overridden
+    /// using the `port` parameter in the call to ``send(_:to:port:)-(OSCPacket,_,_)``.
+    ///
+    /// The default port for OSC communication is 8000 but may change depending on device/software
+    /// manufacturer.
+    public var remotePort: Int {
+        get { _remotePort ?? localPort }
+        set { _remotePort = (newValue == 0) ? nil : newValue }
+    }
+
+    private var _remotePort: Int?
+    
+    /// Network interface to restrict connections to.
+    public private(set) var interface: String?
+    
+    /// Enable sending IPv4 broadcast messages from the socket.
+    ///
+    /// By default, the socket will not allow you to send broadcast messages as a network safeguard
+    /// and it is an opt-in feature.
+    ///
+    /// A broadcast UDP message can be sent to a correctly formatted broadcast address. A broadcast
+    /// address is the highest IP address for a subnet or a network.
+    ///
+    /// For example, a class C network with first octet `192`, one subnet, and subnet mask of
+    /// `255.255.255.0` would have a broadcast address of `192.168.0.255` and would effectively send
+    /// to `192.168.0.*` (where `*` is the range `1 ... 254`).
+    ///
+    /// 255.255.255.255 is a special broadcast address which targets all hosts on a local network.
+    ///
+    /// For more information on IPv4 broadcast addresses, see
+    /// [Broadcast Address (Wikipedia)](https://en.wikipedia.org/wiki/Broadcast_address) and [Subnet
+    /// Calculator](https://www.subnet-calculator.com).
+    ///
+    /// Internet Protocol version 6 (IPv6) does not implement this method of broadcast, and
+    /// therefore does not define broadcast addresses. Instead, IPv6 uses multicast addressing.
+    public let isIPv4BroadcastEnabled: Bool
+    
+    /// Returns a boolean indicating whether the OSC socket has been started.
+    public var isStarted: Bool {
+        channel?.isActive ?? false
+    }
+    
+    /// Initialize with a remote hostname and UDP port.
+    ///
+    /// > Note:
+    /// >
+    /// > Ensure ``start()`` is called once after initialization in order to begin sending and receiving messages.
+    ///
+    /// - Parameters:
+    ///   - localPort: Local port to listen on for inbound OSC packets.
+    ///     If `nil` or `0`, a random available port in the system will be chosen.
+    ///   - remoteHost: Remote hostname or IP address.
+    ///   - remotePort: Remote port on the remote host machine to send outbound OSC packets to.
+    ///     If `nil` or `0`, the `localPort` value will be used.
+    ///   - interface: Optionally specify a network interface for which to constrain communication.
+    ///   - timeTagMode: OSC time-tag mode. The default is recommended.
+    ///   - isIPv4BroadcastEnabled: Enable sending IPv4 broadcast messages from the socket.
+    ///     See ``isIPv4BroadcastEnabled`` for more details.
+    ///   - queue: Optionally supply a custom dispatch queue for receiving OSC packets and dispatching the
+    ///     handler callback closure. If `nil`, a dedicated internal background queue will be used.
+    ///   - receiveHandler: Handler to call when OSC bundles or messages are received.
+    public init(
+        localPort: Int? = nil,
+        remoteHost: String? = nil,
+        remotePort: Int? = nil,
+        interface: String? = nil,
+        timeTagMode: OSCTimeTagMode = .ignore,
+        isIPv4BroadcastEnabled: Bool = false,
+        queue: DispatchQueue? = nil,
+        receiveHandler: OSCHandlerBlock? = nil
+    ) {
+        self.remoteHost = remoteHost
+        _localPort = (localPort == nil || localPort == 0) ? nil : localPort
+        _remotePort = (remotePort == nil || remotePort == 0) ? nil : remotePort
+        self.interface = interface
+        self.timeTagMode = timeTagMode
+        self.isIPv4BroadcastEnabled = isIPv4BroadcastEnabled
+        let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSCCore.OSCUDPSocket.queue")
+        self.queue = queue
+        self.receiveHandler = receiveHandler
+    }
+}
+
+extension OSCUDPSocket: @unchecked Sendable { }
+
+// MARK: - Lifecycle
+
+extension OSCUDPSocket {
+    /// Bind the local UDP port and begin listening for OSC packets.
+    public func start() throws {
+        guard !isStarted else { return }
+        
+        let host: String = interface ?? "0.0.0.0"
+        let port: Int = _localPort ?? 0
+        
+        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
+        let bootstrap = DatagramBootstrap(group: group)
+            .channelOption(.socketOption(.so_broadcast), value: broadcast)
+            .channelInitializer { channel in
+                channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
+            }
+        
+        channel = try bootstrap.bind(host: host, port: port).wait()
+    }
+    
+    /// Stops listening for data and closes the OSC port.
+    public func stop() {
+        try? channel?.close().wait()
+        channel = nil
+    }
+}
+
+// MARK: - Communication
+
+extension OSCUDPSocket {
+    /// Send an OSC bundle or message to the remote host.
+    /// The ``remoteHost`` and ``remotePort`` properties are used unless one or both are
+    /// overridden in this call.
+    ///
+    /// The default port for OSC communication is 8000 but may change depending on device/software
+    /// manufacturer.
+    public func send(
+        _ oscPacket: OSCPacket,
+        to host: String? = nil,
+        port: Int? = nil
+    ) throws {
+        guard let channel, isStarted else {
+            throw OSCSocketError.notStarted
+        }
+        
+        guard let toHost = host ?? remoteHost else {
+            throw OSCSocketError.noRemoteHost
+        }
+        
+        let data = try oscPacket.rawData()
+        
+        let port = (port ?? remotePort)
+        
+        let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
+                
+        let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
+        
+        let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
+                
+        try channel.writeAndFlush(envelope).wait()
+    }
+    
+    /// Send an OSC bundle to the remote host.
+    /// The ``remoteHost`` and ``remotePort`` properties are used unless one or both are
+    /// overridden in this call.
+    ///
+    /// The default port for OSC communication is 8000 but may change depending on device/software
+    /// manufacturer.
+    public func send(
+        _ oscBundle: OSCBundle,
+        to host: String? = nil,
+        port: Int? = nil
+    ) throws {
+        try send(.bundle(oscBundle), to: host, port: port)
+    }
+    
+    /// Send an OSC message to the remote host.
+    /// The ``remoteHost`` and ``remotePort`` properties are used unless one or both are
+    /// overridden in this call.
+    ///
+    /// The default port for OSC communication is 8000 but may change depending on device/software
+    /// manufacturer.
+    public func send(
+        _ oscMessage: OSCMessage,
+        to host: String? = nil,
+        port: Int? = nil
+    ) throws {
+        try send(.message(oscMessage), to: host, port: port)
+    }
+}
+
+extension OSCUDPSocket: _OSCHandlerProtocol { }
+
+// MARK: - Properties
+
+extension OSCUDPSocket {
+    /// Set the receive handler closure.
+    /// This closure will be called when OSC bundles or messages are received.
+    public func setReceiveHandler(
+        _ handler: OSCHandlerBlock?
+    ) {
+        queue.async {
+            self.receiveHandler = handler
+        }
+    }
+}
+
+#endif
