@@ -113,6 +113,9 @@ extension OSCTCPServer {
 
         let host = interface ?? "0.0.0.0"
         channel = try bootstrap.bind(host: host, port: Int(localPort)).wait()
+        channel = try bootstrap
+            .bind(host: host, port: Int(_localPort ?? localPort))
+            .wait()
     }
 
     /// Closes any open client connections and stops listening for inbound connection requests.
