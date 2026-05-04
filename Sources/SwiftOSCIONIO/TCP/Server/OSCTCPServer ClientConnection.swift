@@ -14,7 +14,7 @@ extension OSCTCPServer {
         let oscServer: (any _OSCTCPHandlerProtocol & _OSCTCPGeneratesServerNotificationsProtocol)?
         let clientID: OSCTCPClientSessionID
         let remoteHost: String // cached, since Channel resets it upon disconnection
-        let remotePort: Int // cached, since Channel resets it upon disconnection
+        let remotePort: UInt16 // cached, since Channel resets it upon disconnection
         let framingMode: OSCTCPFramingMode
 
         init(
@@ -27,7 +27,7 @@ extension OSCTCPServer {
             oscServer = server
             let host = channel.remoteAddress?.ipAddress ?? ""
             remoteHost = host
-            let port = channel.remoteAddress?.port ?? 0
+            let port = UInt16(channel.remoteAddress?.port ?? 0)
             remotePort = port
             self.clientID = clientID
             self.framingMode = framingMode

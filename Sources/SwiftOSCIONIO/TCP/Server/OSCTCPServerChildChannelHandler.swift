@@ -24,7 +24,7 @@ extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
 
     func channelActive(context: ChannelHandlerContext) {
         guard let server else { return }
-        let port = context.channel.remoteAddress?.port ?? 0
+        let port = UInt16(context.channel.remoteAddress?.port ?? 0)
         let host = context.channel.remoteAddress?.ipAddress ?? ""
 
         clientID = server.addClient(channel: context.channel)
@@ -41,7 +41,7 @@ extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
 
         guard let server else { return }
 
-        let port = context.channel.remoteAddress?.port ?? 0
+        let port = UInt16(context.channel.remoteAddress?.port ?? 0)
         let host = context.channel.remoteAddress?.ipAddress ?? ""
 
         server._handle(receivedData: data, remoteHost: host, remotePort: port)
@@ -51,7 +51,7 @@ extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
         let error = pendingError
         pendingError = nil
 
-        let port = context.channel.remoteAddress?.port ?? 0
+        let port = UInt16(context.channel.remoteAddress?.port ?? 0)
         let host = context.channel.remoteAddress?.ipAddress ?? ""
 
         server?.disconnectClient(clientID: clientID)

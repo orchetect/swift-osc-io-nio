@@ -34,7 +34,7 @@ public final class OSCTCPClient {
     public let remoteHost: String
 
     /// Remote network port.
-    public let remotePort: Int
+    public let remotePort: UInt16
 
     /// Network interface to restrict connections to.
     public let interface: String?
@@ -65,7 +65,7 @@ public final class OSCTCPClient {
     ///   - receiveHandler: Handler to call when OSC bundles or messages are received.
     public init(
         remoteHost: String,
-        remotePort: Int,
+        remotePort: UInt16,
         interface: String? = nil,
         timeTagMode: OSCTimeTagMode = .ignore,
         framingMode: OSCTCPFramingMode = .osc1_1,
@@ -120,7 +120,7 @@ extension OSCTCPClient {
 
         // connect to host
         channel = try bootstrap
-            .connect(host: remoteHost, port: remotePort)
+            .connect(host: remoteHost, port: Int(remotePort))
             .wait()
     }
 

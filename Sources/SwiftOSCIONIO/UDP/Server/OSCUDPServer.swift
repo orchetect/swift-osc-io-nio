@@ -22,14 +22,14 @@ public final class OSCUDPServer {
 
     /// UDP port used by the OSC server to listen for inbound OSC packets.
     /// This may only be set at the time of initialization.
-    public var localPort: Int {
+    public var localPort: UInt16 {
         if let port = channel?.localAddress?.port {
-            return Int(port)
+            return UInt16(port)
         }
         return _localPort ?? 0
     }
 
-    private var _localPort: Int?
+    private var _localPort: UInt16?
 
     /// Network interface to restrict connections to.
     public private(set) var interface: String?
@@ -71,7 +71,7 @@ public final class OSCUDPServer {
     ///     handler callback closure. If `nil`, a dedicated internal background queue will be used.
     ///   - receiveHandler: Handler to call when OSC bundles or messages are received.
     public init(
-        port: Int? = 8000,
+        port: UInt16? = 8000,
         interface: String? = nil,
         isPortReuseEnabled: Bool = false,
         timeTagMode: OSCTimeTagMode = .ignore,
@@ -101,7 +101,7 @@ extension OSCUDPServer {
 
         let handler = OSCUDPChannelHandler(oscServer: self)
         let host: String = interface ?? "0.0.0.0"
-        let port: Int = _localPort ?? 0
+        let port: UInt16 = _localPort ?? 0
 
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
         channel = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
@@ -109,7 +109,7 @@ extension OSCUDPServer {
             .channelInitializer { channel in
                 channel.pipeline.addHandler(handler)
             }
-            .bind(host: host, port: port)
+            .bind(host: host, port: Int(port))
             .wait()
     }
 

@@ -23,14 +23,14 @@ public final class OSCUDPClient {
     /// > If `localPort` was not specified at the time of initialization, reading this
     /// > property may return a value of `0` until the first successful call to ``send(_:to:port:)-(OSCPacket,_,_)``
     /// > is made.
-    public var localPort: Int {
+    public var localPort: UInt16 {
         if let port = channel?.localAddress?.port {
-            return Int(port)
+            return UInt16(port)
         }
         return _localPort ?? 0
     }
 
-    private var _localPort: Int?
+    private var _localPort: UInt16?
 
     /// Network interface to restrict connections to.
     public private(set) var interface: String?
@@ -116,7 +116,7 @@ public final class OSCUDPClient {
     ///   - isPortReuseEnabled: Enable local UDP port reuse by other processes.
     ///   - isIPv4BroadcastEnabled: Enable sending IPv4 broadcast messages from the socket.
     public convenience init(
-        localPort: Int?,
+        localPort: UInt16?,
         interface: String? = nil,
         isPortReuseEnabled: Bool = false,
         isIPv4BroadcastEnabled: Bool = false
@@ -150,7 +150,7 @@ extension OSCUDPClient {
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
         let broadcast: ChannelOptions.Types.SocketOption.Value = _isIPv4BroadcastEnabled ? 1 : 0
         let host: String = interface ?? "0.0.0.0"
-        let port: Int = _localPort ?? 0
+        let port: UInt16 = _localPort ?? 0
 
         // Channel Setup
         channel = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
@@ -159,7 +159,7 @@ extension OSCUDPClient {
                 // configure ipv4 broadcast
                 .channelOption(.socketOption(.so_broadcast), value: broadcast)
                 // bin to host and port
-                .bind(host: host, port: port)
+                .bind(host: host, port: Int(port))
                 // wait for resolution of the `EventLoopFuture`
                 .wait()
     }
@@ -182,7 +182,7 @@ extension OSCUDPClient {
     public func send(
         _ oscPacket: OSCPacket,
         to host: String,
-        port: Int = 8000
+        port: UInt16 = 8000
     ) throws {
         let data = try oscPacket.rawData()
 
@@ -195,7 +195,7 @@ extension OSCUDPClient {
         }
 
         // resolve host and port to `SocketAddress`
-        let remoteAddress = try SocketAddress.makeAddressResolvingHost(host, port: port)
+        let remoteAddress = try SocketAddress.makeAddressResolvingHost(host, port: Int(port))
         // create buffer from data
         let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
 
@@ -210,7 +210,7 @@ extension OSCUDPClient {
     public func send(
         _ oscBundle: OSCBundle,
         to host: String,
-        port: Int = 8000
+        port: UInt16 = 8000
     ) throws {
         try send(.bundle(oscBundle), to: host, port: port)
     }
@@ -222,7 +222,7 @@ extension OSCUDPClient {
     public func send(
         _ oscMessage: OSCMessage,
         to host: String,
-        port: Int = 8000
+        port: UInt16 = 8000
     ) throws {
         try send(.message(oscMessage), to: host, port: port)
     }

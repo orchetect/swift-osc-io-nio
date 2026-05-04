@@ -7,13 +7,13 @@
 protocol _OSCTCPGeneratesServerNotificationsProtocol {
     func _generateConnectedNotification(
         remoteHost: String,
-        remotePort: Int,
+        remotePort: UInt16,
         clientID: OSCTCPClientSessionID
     )
 
     func _generateDisconnectedNotification(
         remoteHost: String,
-        remotePort: Int,
+        remotePort: UInt16,
         clientID: OSCTCPClientSessionID,
         error: (any Error)?
     )

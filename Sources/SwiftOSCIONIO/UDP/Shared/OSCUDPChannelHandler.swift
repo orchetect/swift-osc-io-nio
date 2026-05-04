@@ -32,7 +32,7 @@ extension OSCUDPChannelHandler: ChannelInboundHandler {
         guard let oscServer else { return }
 
         let remoteHost = envelope.remoteAddress.ipAddress ?? ""
-        let remotePort = Int(envelope.remoteAddress.port ?? 0)
+        let remotePort = UInt16(envelope.remoteAddress.port ?? 0)
 
         _handle(oscServer: oscServer, data: data, remoteHost: remoteHost, remotePort: remotePort)
     }
@@ -44,7 +44,7 @@ extension OSCUDPChannelHandler {
         oscServer: any _OSCHandlerProtocol,
         data: Data,
         remoteHost: String,
-        remotePort: Int
+        remotePort: UInt16
     ) {
         do {
             guard let packet = try OSCPacket(from: data) else { return }

@@ -33,11 +33,11 @@ public final class OSCTCPServer {
     public var timeTagMode: OSCTimeTagMode
 
     /// Local network port.
-    public var localPort: Int {
-        channel?.localAddress?.port ?? 0
+    public var localPort: UInt16 {
+        UInt16(channel?.localAddress?.port ?? 0)
     }
 
-    private var _localPort: Int?
+    private var _localPort: UInt16?
 
     /// Network interface to restrict connections to.
     public let interface: String?
@@ -67,7 +67,7 @@ public final class OSCTCPServer {
     ///     handler callback closure. If `nil`, a dedicated internal background queue will be used.
     ///   - receiveHandler: Handler to call when OSC bundles or messages are received.
     public init(
-        port: Int?,
+        port: UInt16?,
         interface: String? = nil,
         timeTagMode: OSCTimeTagMode = .ignore,
         framingMode: OSCTCPFramingMode = .osc1_1,
@@ -112,7 +112,7 @@ extension OSCTCPServer {
             }
 
         let host = interface ?? "0.0.0.0"
-        channel = try bootstrap.bind(host: host, port: localPort).wait()
+        channel = try bootstrap.bind(host: host, port: Int(localPort)).wait()
     }
 
     /// Closes any open client connections and stops listening for inbound connection requests.
@@ -188,14 +188,14 @@ extension OSCTCPServer: _OSCTCPHandlerProtocol {
 }
 
 extension OSCTCPServer: _OSCTCPGeneratesServerNotificationsProtocol {
-    func _generateConnectedNotification(remoteHost: String, remotePort: Int, clientID: OSCTCPClientSessionID) {
+    func _generateConnectedNotification(remoteHost: String, remotePort: UInt16, clientID: OSCTCPClientSessionID) {
         let notif: Notification = .connected(remoteHost: remoteHost, remotePort: remotePort, clientID: clientID)
         notificationHandler?(notif)
     }
 
     func _generateDisconnectedNotification(
         remoteHost: String,
-        remotePort: Int,
+        remotePort: UInt16,
         clientID: OSCTCPClientSessionID,
         error: (any Error)?
     ) {
@@ -234,9 +234,9 @@ extension OSCTCPServer {
     /// > A client ID is transient and only valid for the lifecycle of the connection. Client IDs are randomly-assigned
     /// > upon each newly-made connection. For this reason, these IDs should not be stored persistently, but instead
     /// > queried from the OSC TCP server when a client connects or analyzing currently-connected clients.
-    public var clients: [OSCTCPClientSessionID: (host: String, port: Int)] {
+    public var clients: [OSCTCPClientSessionID: (host: String, port: UInt16)] {
         _clients
-            .reduce(into: [:] as [OSCTCPClientSessionID: (host: String, port: Int)]) { base, element in
+            .reduce(into: [:] as [OSCTCPClientSessionID: (host: String, port: UInt16)]) { base, element in
                 base[element.key] = (
                     host: element.value.remoteHost,
                     port: element.value.remotePort

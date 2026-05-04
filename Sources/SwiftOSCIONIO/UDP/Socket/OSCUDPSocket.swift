@@ -43,14 +43,14 @@ public final class OSCUDPSocket {
     /// > If `localPort` was not specified at the time of initialization, reading this
     /// > property may return a value of `0` until the first successful call to ``send(_:to:port:)-(OSCPacket,_,_)``
     /// > is made.
-    public var localPort: Int {
+    public var localPort: UInt16 {
         if let port = channel?.localAddress?.port {
-            return Int(port)
+            return UInt16(port)
         }
         return _localPort ?? 0
     }
 
-    private var _localPort: Int?
+    private var _localPort: UInt16?
 
     /// UDP port used by to send OSC packets. This may be set at any time.
     /// This port will be used in calls to ``send(_:to:port:)-(OSCPacket,_,_)``. The port may still be overridden
@@ -58,12 +58,12 @@ public final class OSCUDPSocket {
     ///
     /// The default port for OSC communication is 8000 but may change depending on device/software
     /// manufacturer.
-    public var remotePort: Int {
+    public var remotePort: UInt16 {
         get { _remotePort ?? localPort }
         set { _remotePort = (newValue == 0) ? nil : newValue }
     }
 
-    private var _remotePort: Int?
+    private var _remotePort: UInt16?
 
     /// Network interface to restrict connections to.
     public private(set) var interface: String?
@@ -115,9 +115,9 @@ public final class OSCUDPSocket {
     ///     handler callback closure. If `nil`, a dedicated internal background queue will be used.
     ///   - receiveHandler: Handler to call when OSC bundles or messages are received.
     public init(
-        localPort: Int? = nil,
+        localPort: UInt16? = nil,
         remoteHost: String? = nil,
-        remotePort: Int? = nil,
+        remotePort: UInt16? = nil,
         interface: String? = nil,
         timeTagMode: OSCTimeTagMode = .ignore,
         isIPv4BroadcastEnabled: Bool = false,
@@ -146,7 +146,7 @@ extension OSCUDPSocket {
         guard !isStarted else { return }
 
         let host: String = interface ?? "0.0.0.0"
-        let port: Int = _localPort ?? 0
+        let port: UInt16 = _localPort ?? 0
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
@@ -156,7 +156,7 @@ extension OSCUDPSocket {
                 channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
             }
 
-        channel = try bootstrap.bind(host: host, port: port).wait()
+        channel = try bootstrap.bind(host: host, port: Int(port)).wait()
     }
 
     /// Stops listening for data and closes the OSC port.
@@ -178,7 +178,7 @@ extension OSCUDPSocket {
     public func send(
         _ oscPacket: OSCPacket,
         to host: String? = nil,
-        port: Int? = nil
+        port: UInt16? = nil
     ) throws {
         guard let channel, isStarted else {
             throw OSCSocketError.notStarted
@@ -192,7 +192,7 @@ extension OSCUDPSocket {
 
         let port = (port ?? remotePort)
 
-        let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
+        let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: Int(port))
 
         let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
 
@@ -210,7 +210,7 @@ extension OSCUDPSocket {
     public func send(
         _ oscBundle: OSCBundle,
         to host: String? = nil,
-        port: Int? = nil
+        port: UInt16? = nil
     ) throws {
         try send(.bundle(oscBundle), to: host, port: port)
     }
@@ -224,7 +224,7 @@ extension OSCUDPSocket {
     public func send(
         _ oscMessage: OSCMessage,
         to host: String? = nil,
-        port: Int? = nil
+        port: UInt16? = nil
     ) throws {
         try send(.message(oscMessage), to: host, port: port)
     }

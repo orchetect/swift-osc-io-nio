@@ -22,7 +22,7 @@ extension _OSCHandlerProtocol {
         packet: OSCPacket,
         timeTag: OSCTimeTag = .immediate(),
         remoteHost: String,
-        remotePort: Int
+        remotePort: UInt16
     ) {
         queue.async {
             switch packet {
@@ -51,7 +51,7 @@ extension _OSCHandlerProtocol {
         _ message: OSCMessage,
         at timeTag: OSCTimeTag = .immediate(),
         remoteHost: String,
-        remotePort: Int
+        remotePort: UInt16
     ) {
         switch timeTagMode {
         case .ignore:
@@ -86,7 +86,7 @@ extension _OSCHandlerProtocol {
         _ message: OSCMessage,
         timeTag: OSCTimeTag,
         remoteHost: String,
-        remotePort: Int
+        remotePort: UInt16
     ) {
         queue.async {
             self.receiveHandler?(message, timeTag, remoteHost, remotePort)
@@ -97,7 +97,7 @@ extension _OSCHandlerProtocol {
         _ message: OSCMessage,
         timeTag: OSCTimeTag,
         remoteHost: String,
-        remotePort: Int,
+        remotePort: UInt16,
         at secondsFromNow: TimeInterval
     ) {
         // clamp lower bound to 0
