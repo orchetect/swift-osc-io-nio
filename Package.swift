@@ -11,8 +11,6 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/orchetect/swift-osc-core", from: "1.0.0"),
         .package(url: "https://github.com/apple/swift-nio", from: "2.87.0") // lowest version that supports Swift 6.0
-        // .package(url: "https://github.com/apple/swift-numerics", from: "1.1.1"),
-        // .package(url: "https://github.com/orchetect/swift-testing-extensions", from: "0.3.0")
     ],
     targets: [
         .target(
@@ -26,9 +24,7 @@ let package = Package(
         .testTarget(
             name: "SwiftOSCIONIOTests",
             dependencies: [
-                "SwiftOSCIONIO",
-                // .product(name: "Numerics", package: "swift-numerics"),
-                // .product(name: "TestingExtensions", package: "swift-testing-extensions")
+                "SwiftOSCIONIO"
             ]
         )
     ]

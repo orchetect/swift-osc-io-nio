@@ -1,0 +1,75 @@
+//
+//  OSCTCPHandlerProtocol.swift
+//  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
+//  © 2026 Steffan Andrews • Licensed under MIT License
+//
+
+import Foundation
+import NIO
+
+/// Internal protocol that TCP-based OSC classes adopt in order to handle incoming OSC data.
+protocol _OSCTCPHandlerProtocol: _OSCHandlerProtocol {
+    var channel: (any Channel)? { get }
+    var framingMode: OSCTCPFramingMode { get }
+}
+
+extension _OSCTCPHandlerProtocol {
+    func _handle(receivedData data: Data, remoteHost: String, remotePort: Int) {
+        // This routine must accommodate more than one consecutive packet contained in the data
+        // which may happen when multiple packets are sent rapidly from a client.
+
+        let oscPackets: [Data]
+        switch framingMode {
+        case .osc1_0:
+            do {
+                oscPackets = try data.packetLengthHeaderDecoded(byteOrder: .bigEndian)
+            } catch {
+                #if DEBUG
+                print("OSC 1.0 packet-length header decoding error:", error.localizedDescription)
+                #endif
+
+                return
+            }
+
+        case .osc1_1:
+            do {
+                oscPackets = try data.slipDecoded()
+            } catch {
+                #if DEBUG
+                print("OSC 1.1 SLIP decoding error:", error.localizedDescription)
+                #endif
+
+                return
+            }
+
+        case .none:
+            // TODO: data may contain more than one OSC packet - need to figure out how to either parse out multiple consecutive OSC bundles/messages from raw data, or somehow intuit packet byte offsets within the data if possible.
+            oscPackets = [data]
+        }
+
+        guard !oscPackets.isEmpty else {
+            #if DEBUG
+            print("Failed to parse OSC packets from incoming TCP data.")
+            #endif
+
+            return
+        }
+
+        for oscPacketData in oscPackets {
+            do {
+                guard let oscPacket = try OSCPacket(from: oscPacketData) else {
+                    #if DEBUG
+                    print("Error parsing OSC packet from incoming TCP data; it may not be OSC data or may be malformed.")
+                    #endif
+
+                    continue
+                }
+                _handle(packet: oscPacket, remoteHost: remoteHost, remotePort: remotePort)
+            } catch {
+                #if DEBUG
+                print(error.localizedDescription)
+                #endif
+            }
+        }
+    }
+}

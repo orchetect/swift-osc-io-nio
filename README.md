@@ -8,9 +8,9 @@ Network I/O extension for [SwiftOSCCore](https://github.com/orchetect/swift-osc-
 
 ## Compatibility
 
-| macOS | iOS  | tvOS | visionOS | watchOS | Linux | Android | Windows |
-| :---: | :--: | :--: | :------: | :-----: | :---: | :-----: | :-----: |
-|   🟢   |  🟢   |  🟢   |    🟢     |    🟢    |   🟢   |    🟢    |    -    |
+| macOS | iOS  | tvOS | visionOS | watchOS | Linux | Android | WASM | Windows |
+| :---: | :--: | :--: | :------: | :-----: | :---: | :-----: | :-----: | :-----: |
+|   🟢   |  🟢   |  🟢   |    🟢     |    🟢    |   🟢   |    🟢    |    -    |    -    |
 
 ## Getting Started
 
@@ -51,6 +51,8 @@ For support, feature requests, and bug reports see the main [SwiftOSC](https://g
 ## Author
 
 Coded by a bunch of 🐹 hamsters in a trenchcoat that calls itself [@orchetect](https://github.com/orchetect).
+
+SwiftNIO porting by [@The-Wolfson](https://github.com/The-Wolfson).
 
 ## License
 
