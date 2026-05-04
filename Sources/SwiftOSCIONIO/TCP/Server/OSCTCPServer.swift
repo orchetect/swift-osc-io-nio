@@ -111,8 +111,7 @@ extension OSCTCPServer {
                 }
             }
 
-        let host = interface ?? "0.0.0.0"
-        channel = try bootstrap.bind(host: host, port: Int(localPort)).wait()
+        let host = interface ?? "127.0.0.1" // "0.0.0.0"
         channel = try bootstrap
             .bind(host: host, port: Int(_localPort ?? localPort))
             .wait()
