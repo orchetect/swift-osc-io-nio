@@ -36,8 +36,8 @@ struct OSCUDPSocket_Tests {
         let server = OSCUDPSocket()
 
         final actor Receiver {
-            var messages: [(message: OSCMessage, host: String, port: Int)] = []
-            func received(_ message: OSCMessage, host: String, port: Int) {
+            var messages: [(message: OSCMessage, host: String, port: UInt16)] = []
+            func received(_ message: OSCMessage, host: String, port: UInt16) {
                 messages.append((message, host, port))
             }
         }
