@@ -115,7 +115,7 @@ struct OSCTCPServer_Tests {
     /// - This test is repeated for each TCP framing mode.
     /// - This also tests that when passing local port 0 to server's init, after calling `start()` the `localPort`
     ///   property is then populated with the system-assigned port.
-    @MainActor @Test(arguments: OSCTCPFramingMode.allCases)
+    @MainActor @Test(.serialized, arguments: OSCTCPFramingMode.allCases)
     func stressTestOnline(framingMode: OSCTCPFramingMode) async throws {
         let isStable = isSystemTimingStable()
 
@@ -128,6 +128,9 @@ struct OSCTCPServer_Tests {
         try server.start()
         try await Task.sleep(seconds: isStable ? 0.5 : 5.0)
 
+        // cleanup when test case exists so no open sockets hang or interfere with other test cases
+        defer { server.stop() }
+        
         print("Using server listen port \(server.localPort)")
 
         // setup client
@@ -232,6 +235,9 @@ struct OSCTCPServer_Tests {
         try server.start()
         try await Task.sleep(seconds: isStable ? 0.5 : 5.0)
 
+        // cleanup when test case exists so no open sockets hang or interfere with other test cases
+        defer { server.stop() }
+
         print("Using server listen port \(server.localPort)")
 
         // setup client 1
@@ -291,6 +297,9 @@ struct OSCTCPServer_Tests {
 
         print("Using server listen port \(server.localPort)")
 
+        // cleanup when test case exists so no open sockets hang or interfere with other test cases
+        defer { server.stop() }
+        
         // setup client 1
         // (must be done after calling start on server so we have a non-zero local server port to use)
 
