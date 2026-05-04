@@ -119,7 +119,7 @@
 			);
 			mainGroup = E2D003C8289882820073ED8F;
 			packageReferences = (
-				E2297C772FA940EA00F2BD4D /* XCLocalSwiftPackageReference "../../../../swift-osc-io-nio" */,
+				E2297C772FA940EA00F2BD4D /* XCLocalSwiftPackageReference "../../../" */,
 			);
 			productRefGroup = E2D003D2289882820073ED8F /* Products */;
 			projectDirPath = "";
@@ -372,9 +372,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		E2297C772FA940EA00F2BD4D /* XCLocalSwiftPackageReference "../../../../swift-osc-io-nio" */ = {
+		E2297C772FA940EA00F2BD4D /* XCLocalSwiftPackageReference "../../../" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../../../swift-osc-io-nio";
+			relativePath = "../../../";
 		};
 /* End XCLocalSwiftPackageReference section */
 
