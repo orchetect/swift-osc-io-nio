@@ -18,23 +18,15 @@ extension OSCTCPClient {
 
 extension OSCTCPClient.Notification: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        switch (lhs, rhs) {
-        // Both are connected
+        return switch (lhs, rhs) {
         case (.connected, .connected):
-            return true
+            true
 
-        case let (.disconnected(leftErr), .disconnected(rightErr)):
-            switch (leftErr, rightErr) {
-            // Both Errors are nil
-            case (nil, nil): return true
-            // One Error is nil, Other is not.
-            case (nil, _), (_, nil): return false
-            // If both are Errors, check if localizedDescription is the same
-            case let (left?, right?): return left.localizedDescription == right.localizedDescription
-            }
+        case let (.disconnected(lhsError), .disconnected(rhsError)):
+            lhsError?.localizedDescription == rhsError?.localizedDescription
 
         default:
-            return false
+            false
         }
     }
 }
