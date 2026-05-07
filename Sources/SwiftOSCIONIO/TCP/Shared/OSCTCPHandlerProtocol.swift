@@ -6,9 +6,10 @@
 
 import Foundation
 import NIO
+import SwiftOSCCore
 
 /// Internal protocol that TCP-based OSC classes adopt in order to handle incoming OSC data.
-protocol _OSCTCPHandlerProtocol: _OSCHandlerProtocol {
+protocol _OSCTCPHandlerProtocol: OSCHandlerProtocol {
     var channel: (any Channel)? { get }
     var framingMode: OSCTCPFramingMode { get }
 }
@@ -64,7 +65,7 @@ extension _OSCTCPHandlerProtocol {
 
                     continue
                 }
-                _handle(packet: oscPacket, remoteHost: remoteHost, remotePort: remotePort)
+                handle(packet: oscPacket, remoteHost: remoteHost, remotePort: remotePort)
             } catch {
                 #if DEBUG
                 print(error.localizedDescription)

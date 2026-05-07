@@ -6,6 +6,7 @@
 
 import Foundation
 import NIO
+import SwiftOSCCore
 
 /// Receives OSC packets from the network on a specific UDP listen port.
 ///
@@ -14,8 +15,8 @@ import NIO
 /// desired.
 public final class OSCUDPServer {
     private var channel: (any Channel)?
-    let queue: DispatchQueue
-    var receiveHandler: OSCHandlerBlock?
+    public let queue: DispatchQueue
+    public internal(set) var receiveHandler: OSCHandlerBlock?
 
     /// Time tag mode. Determines how OSC bundle time tags are handled.
     public var timeTagMode: OSCTimeTagMode
@@ -122,7 +123,7 @@ extension OSCUDPServer {
 
 // MARK: - Communication
 
-extension OSCUDPServer: _OSCHandlerProtocol {
+extension OSCUDPServer: OSCHandlerProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 

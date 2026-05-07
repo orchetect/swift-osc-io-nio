@@ -20,8 +20,8 @@ import NIO
 /// remote TCP server. (Whereas, the server is designed to listen for inbound connections.)
 public final class OSCTCPClient {
     var channel: (any Channel)?
-    let queue: DispatchQueue
-    var receiveHandler: OSCHandlerBlock?
+    public let queue: DispatchQueue
+    public internal(set) var receiveHandler: OSCHandlerBlock?
     var notificationHandler: NotificationHandlerBlock?
 
     /// Notification handler closure.

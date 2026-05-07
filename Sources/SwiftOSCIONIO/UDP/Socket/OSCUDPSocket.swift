@@ -6,6 +6,7 @@
 
 import Foundation
 import NIO
+import SwiftOSCCore
 
 /// Sends and receives OSC packets over the network by binding a single local UDP port to both send
 /// OSC packets from and listen for incoming packets.
@@ -21,8 +22,8 @@ import NIO
 /// by sending OSC messages back to you on port 8000.
 public final class OSCUDPSocket {
     private var channel: (any Channel)?
-    let queue: DispatchQueue
-    var receiveHandler: OSCHandlerBlock?
+    public let queue: DispatchQueue
+    public internal(set) var receiveHandler: OSCHandlerBlock?
 
     /// Time tag mode. Determines how OSC bundle time tags are handled.
     public var timeTagMode: OSCTimeTagMode
@@ -230,7 +231,7 @@ extension OSCUDPSocket {
     }
 }
 
-extension OSCUDPSocket: _OSCHandlerProtocol { }
+extension OSCUDPSocket: OSCHandlerProtocol { }
 
 // MARK: - Properties
 

@@ -22,8 +22,8 @@ import NIO
 public final class OSCTCPServer {
     var channel: (any Channel)?
     private var _clients: [OSCTCPClientSessionID: OSCTCPServer.ClientConnection] = [:]
-    let queue: DispatchQueue
-    var receiveHandler: OSCHandlerBlock?
+    public let queue: DispatchQueue
+    public internal(set) var receiveHandler: OSCHandlerBlock?
     var notificationHandler: NotificationHandlerBlock?
 
     /// Notification handler closure.
