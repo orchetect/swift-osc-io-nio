@@ -6,6 +6,7 @@
 
 import Foundation
 import NIO
+import SwiftOSCCore
 
 /// Internal protocol that TCP-based OSC classes adopt in order to send OSC packets.
 protocol _OSCTCPSendProtocol: AnyObject where Self: Sendable {
@@ -48,20 +49,7 @@ extension _OSCTCPSendProtocol {
         }
 
         // frame data
-        let data: Data = switch framingMode {
-        case .osc1_0:
-            // OSC packet framed using a packet-length header
-            // 4-byte int for size
-            TCPPacketLengthHeaderCoding.encode(oscData, byteOrder: .bigEndian)
-
-        case .osc1_1:
-            // OSC packet framed using SLIP (double END) protocol: http://www.rfc-editor.org/rfc/rfc1055.txt
-            TCPSLIPCoding.encode(oscData)
-
-        case .none:
-            // no framing, send OSC bytes as-is
-            oscData
-        }
+        let data = framingMode.encode(data: oscData)
 
         // send packet
         var buffer = channel.allocator.buffer(capacity: data.count)
