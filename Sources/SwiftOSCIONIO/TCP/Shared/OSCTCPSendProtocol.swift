@@ -18,8 +18,6 @@ extension _OSCTCPSendProtocol {
     ///
     /// - Parameters:
     ///   - oscPacket: OSC bundle or message.
-    ///   - tag: Server Connection Client Session ID. Applies only to TCP server to determine which connected socket to
-    ///     send to.
     func _send(_ oscPacket: OSCPacket) throws {
         try _send(oscPacket.rawData())
     }
@@ -28,8 +26,6 @@ extension _OSCTCPSendProtocol {
     ///
     /// - Parameters:
     ///   - oscBundle: OSC bundle.
-    ///   - tag: Server Connection Client Session ID. Applies only to TCP server to determine which connected socket to
-    ///     send to.
     func _send(_ oscBundle: OSCBundle) throws {
         try _send(oscBundle.rawData())
     }
@@ -38,8 +34,6 @@ extension _OSCTCPSendProtocol {
     ///
     /// - Parameters:
     ///   - oscMessage: OSC message.
-    ///   - tag: Server Connection Client Session ID. Applies only to TCP server to determine which connected socket to
-    ///     send to.
     func _send(_ oscMessage: OSCMessage) throws {
         try _send(oscMessage.rawData())
     }
@@ -48,8 +42,6 @@ extension _OSCTCPSendProtocol {
     ///
     /// - Parameters:
     ///   - oscData: Raw bytes of an OSC bundle or message.
-    ///   - tag: Server Connection Client Session ID. Applies only to TCP server to determine which connected socket to
-    ///     send to.
     private func _send(_ oscData: Data) throws {
         guard let channel else {
             throw OSCSocketError.notStarted

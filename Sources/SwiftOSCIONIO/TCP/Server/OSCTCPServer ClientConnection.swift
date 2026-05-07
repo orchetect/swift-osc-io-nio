@@ -25,11 +25,9 @@ extension OSCTCPServer {
         ) {
             self.channel = channel
             oscServer = server
-            let host = channel.remoteAddress?.ipAddress ?? ""
-            remoteHost = host
-            let port = UInt16(channel.remoteAddress?.port ?? 0)
-            remotePort = port
             self.clientID = clientID
+            remoteHost = channel.remoteAddress?.ipAddress ?? ""
+            remotePort = UInt16(channel.remoteAddress?.port ?? 0)
             self.framingMode = framingMode
         }
 
