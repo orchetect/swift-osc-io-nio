@@ -182,11 +182,11 @@ extension OSCUDPSocket {
         port: UInt16? = nil
     ) throws {
         guard let channel, isStarted else {
-            throw OSCSocketError.notStarted
+            throw OSCUDPClientError.notStarted
         }
 
         guard let toHost = host ?? remoteHost else {
-            throw OSCSocketError.noRemoteHost
+            throw OSCUDPClientError.noRemoteHost
         }
 
         let data = try oscPacket.rawData()

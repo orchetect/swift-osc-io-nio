@@ -6,6 +6,7 @@
 
 import Foundation
 import NIO
+import SwiftOSCCore
 
 /// Sends OSC packets over the network using the UDP network protocol.
 ///
@@ -191,7 +192,7 @@ extension OSCUDPClient {
         }
 
         guard let channel else {
-            throw OSCSocketError.notStarted
+            throw OSCUDPClientError.notStarted
         }
 
         // resolve host and port to `SocketAddress`

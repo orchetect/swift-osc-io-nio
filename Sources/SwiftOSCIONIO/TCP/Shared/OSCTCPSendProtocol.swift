@@ -42,9 +42,9 @@ extension _OSCTCPSendProtocol {
     ///
     /// - Parameters:
     ///   - oscData: Raw bytes of an OSC bundle or message.
-    private func _send(_ oscData: Data) throws {
+    private func _send(_ oscData: Data) throws(OSCTCPClientError) {
         guard let channel else {
-            throw OSCSocketError.notStarted
+            throw OSCTCPClientError.notStarted
         }
 
         // frame data

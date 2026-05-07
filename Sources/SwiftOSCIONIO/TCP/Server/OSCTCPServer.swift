@@ -171,7 +171,7 @@ extension OSCTCPServer: _OSCTCPSendProtocol {
     /// Send an OSC bundle or message to an individual connected client.
     func _send(_ oscPacket: OSCPacket, toClientID clientID: Int) throws {
         guard let connection = _clients[clientID] else {
-            throw OSCSocketError.clientNotFound(clientID)
+            throw OSCTCPServerError.clientNotFound(clientID: clientID)
         }
 
         try connection.send(oscPacket)
