@@ -40,9 +40,9 @@ struct OSCTCPServer_Tests {
 
         // use global thread to simulate internal network thread being a dedicated thread
         DispatchQueue.global().async {
-            server._handle(packet: .message(msg1), remoteHost: "127.0.0.1", remotePort: 8000)
-            server._handle(packet: .message(msg2), remoteHost: "192.168.0.25", remotePort: 8001)
-            server._handle(packet: .message(msg3), remoteHost: "10.0.0.50", remotePort: 8080)
+            server.handle(packet: .message(msg1), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.handle(packet: .message(msg2), remoteHost: "192.168.0.25", remotePort: 8001)
+            server.handle(packet: .message(msg3), remoteHost: "10.0.0.50", remotePort: 8080)
         }
 
         try await wait(require: { await receiver.messages.count == 3 }, timeout: 10.0)
@@ -100,7 +100,7 @@ struct OSCTCPServer_Tests {
         // use global thread to simulate internal network thread being a dedicated thread
         DispatchQueue.global().async {
             for message in sourceMessages {
-                server._handle(packet: .message(message), remoteHost: "127.0.0.1", remotePort: 8000)
+                server.handle(packet: .message(message), remoteHost: "127.0.0.1", remotePort: 8000)
             }
         }
 
