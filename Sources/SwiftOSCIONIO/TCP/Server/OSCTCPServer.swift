@@ -26,6 +26,9 @@ public final class OSCTCPServer {
     public internal(set) var receiveHandler: OSCHandlerBlock?
     var notificationHandler: NotificationHandlerBlock?
 
+    /// Notification type.
+    public typealias Notification = OSCTCPServerNotification
+
     /// Notification handler closure.
     public typealias NotificationHandlerBlock = @Sendable (_ notification: Notification) -> Void
 
