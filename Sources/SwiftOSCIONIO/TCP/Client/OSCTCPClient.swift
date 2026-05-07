@@ -24,6 +24,9 @@ public final class OSCTCPClient {
     public internal(set) var receiveHandler: OSCHandlerBlock?
     var notificationHandler: NotificationHandlerBlock?
 
+    /// Notification type.
+    public typealias Notification = OSCTCPClientNotification
+
     /// Notification handler closure.
     public typealias NotificationHandlerBlock = @Sendable (_ notification: Notification) -> Void
 
