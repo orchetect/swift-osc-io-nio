@@ -77,6 +77,10 @@ extension OSCTCPServer.ClientConnection: _OSCTCPHandlerProtocol {
     var receiveHandler: OSCHandlerBlock? {
         oscServer?.receiveHandler
     }
+    
+    func setReceiveHandler(_ handler: OSCHandlerBlock?) {
+        oscServer?.setReceiveHandler(handler)
+    }
 }
 
 extension OSCTCPServer.ClientConnection: _OSCTCPGeneratesClientNotificationsProtocol {
