@@ -45,7 +45,7 @@ extension OSCTCPClientChannelHandler: ChannelInboundHandler {
         let remoteHost = remoteAddress?.ipAddress ?? ""
         let remotePort = UInt16(remoteAddress?.port ?? 0)
 
-        oscServer._handle(receivedData: data, remoteHost: remoteHost, remotePort: remotePort)
+        oscServer.handle(receivedData: data, remoteHost: remoteHost, remotePort: remotePort)
     }
 
     func channelInactive(context: ChannelHandlerContext) {

@@ -6,25 +6,26 @@
 
 import Foundation
 import NIOCore
+import SwiftOSCCore
 
 final class OSCTCPSLIPFrameDecoder: ByteToMessageDecoder {
     typealias InboundOut = ByteBuffer
 
     func decode(context: ChannelHandlerContext, buffer: inout ByteBuffer) throws -> DecodingState {
-        // SLIP has no upfront size declaration, must scan forward to find closing 0xC0
+        // SLIP has no upfront size declaration, must scan forward to find closing END byte
         guard let endIndex = buffer.withUnsafeReadableBytes({ bytes -> Int? in
             var start = 0
             // find if there is leading 0xC0
-            let leadingDelimiterPresent = (bytes.first == Data.SLIPByte.end.rawValue)
-            // if there is a leading 0xC0, skip to avoid misidentifying empty frame
+            let leadingDelimiterPresent = (bytes.first == TCPSLIPCoding.Byte.end.rawValue)
+            // if there is a leading END byte, skip to avoid misidentifying empty frame
             if !bytes.isEmpty, leadingDelimiterPresent {
                 start = 1
             }
 
             // drop bytes before start
             let framedBytes = bytes[start...]
-            // search for closing 0xC0, if none found then need more data
-            guard let end = framedBytes.firstIndex(of: Data.SLIPByte.end.rawValue) else { return nil }
+            // search for closing END byte, if none found then need more data
+            guard let end = framedBytes.firstIndex(of: TCPSLIPCoding.Byte.end.rawValue) else { return nil }
 
             return end + 1 // include the end byte
         }) else {
