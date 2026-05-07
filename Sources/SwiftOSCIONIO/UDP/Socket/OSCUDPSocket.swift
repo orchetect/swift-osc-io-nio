@@ -131,7 +131,7 @@ public final class OSCUDPSocket {
         self.interface = interface
         self.timeTagMode = timeTagMode
         self.isIPv4BroadcastEnabled = isIPv4BroadcastEnabled
-        let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSCCore.OSCUDPSocket.queue")
+        let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPSocket.queue")
         self.queue = queue
         self.receiveHandler = receiveHandler
     }
