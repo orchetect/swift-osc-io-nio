@@ -6,6 +6,7 @@
 
 import Foundation
 import NIO
+import SwiftOSCCore
 
 /// Listens on a local port for TCP connections in order to send and receive OSC packets over the network.
 ///
@@ -133,7 +134,7 @@ extension OSCTCPServer {
 
 // MARK: - Communication
 
-extension OSCTCPServer: _OSCTCPSendProtocol {
+extension OSCTCPServer {
     /// Send an OSC bundle or message to all connected clients.
     public func send(_ oscPacket: OSCPacket) throws {
         let clientIDs = Array(_clients.keys)
@@ -152,24 +153,24 @@ extension OSCTCPServer: _OSCTCPSendProtocol {
     }
 
     /// Send an OSC bundle or message to one or more connected clients.
-    public func send(_ oscPacket: OSCPacket, toClientIDs clientIDs: [Int]) throws {
+    public func send(_ oscPacket: OSCPacket, toClientIDs clientIDs: [OSCTCPClientSessionID]) throws {
         for clientID in clientIDs {
             try _send(oscPacket, toClientID: clientID)
         }
     }
 
     /// Send an OSC bundle to one or more connected clients.
-    public func send(_ oscBundle: OSCBundle, toClientIDs clientIDs: [Int]) throws {
+    public func send(_ oscBundle: OSCBundle, toClientIDs clientIDs: [OSCTCPClientSessionID]) throws {
         try send(.bundle(oscBundle), toClientIDs: clientIDs)
     }
 
     /// Send an OSC message to one or more connected clients.
-    public func send(_ oscMessage: OSCMessage, toClientIDs clientIDs: [Int]) throws {
+    public func send(_ oscMessage: OSCMessage, toClientIDs clientIDs: [OSCTCPClientSessionID]) throws {
         try send(.message(oscMessage), toClientIDs: clientIDs)
     }
 
     /// Send an OSC bundle or message to an individual connected client.
-    func _send(_ oscPacket: OSCPacket, toClientID clientID: Int) throws {
+    func _send(_ oscPacket: OSCPacket, toClientID clientID: OSCTCPClientSessionID) throws {
         guard let connection = _clients[clientID] else {
             throw OSCTCPServerError.clientNotFound(clientID: clientID)
         }
@@ -178,12 +179,12 @@ extension OSCTCPServer: _OSCTCPSendProtocol {
     }
 
     /// Send an OSC bundle to an individual connected client.
-    func _send(_ oscBundle: OSCBundle, toClientID clientID: Int) throws {
+    func _send(_ oscBundle: OSCBundle, toClientID clientID: OSCTCPClientSessionID) throws {
         try _send(.bundle(oscBundle), toClientID: clientID)
     }
 
     /// Send an OSC message to an individual connected client.
-    func _send(_ oscMessage: OSCMessage, toClientID clientID: Int) throws {
+    func _send(_ oscMessage: OSCMessage, toClientID clientID: OSCTCPClientSessionID) throws {
         try _send(.message(oscMessage), toClientID: clientID)
     }
 }
