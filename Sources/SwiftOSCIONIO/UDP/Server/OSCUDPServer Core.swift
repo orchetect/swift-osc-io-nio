@@ -51,6 +51,10 @@ extension OSCUDPServer {
             self.queue = queue
             self.receiveHandler = receiveHandler
         }
+        
+        deinit {
+            stop()
+        }
     }
 }
 
