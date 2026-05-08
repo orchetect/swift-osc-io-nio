@@ -22,7 +22,7 @@ struct OSCTimeTag_OSC1_0_Tests {
                 [.message("/test", values: [Int32(123)])]
             )
 
-            server.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
 
             try await Task.sleep(seconds: 0.5)
         }
@@ -42,7 +42,7 @@ struct OSCTimeTag_OSC1_0_Tests {
                 [.message("/test", values: [Int32(123)])]
             )
 
-            server.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
 
             try await Task.sleep(seconds: 0.5)
         }
@@ -62,7 +62,7 @@ struct OSCTimeTag_OSC1_0_Tests {
                 [.message("/test", values: [Int32(123)])]
             )
 
-            server.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
 
             try await Task.sleep(seconds: 0.5)
         }
@@ -83,7 +83,7 @@ struct OSCTimeTag_OSC1_0_Tests {
                 [.message("/test", values: [Int32(123)])]
             )
 
-            server.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
 
             try await Task.sleep(seconds: 0.9) // just under 1 second
         }
@@ -106,14 +106,14 @@ struct OSCTimeTag_OSC1_0_Tests {
                 timeTag: .timeIntervalSinceNow(1.0),
                 [.message("/test1", values: [Int32(123)])]
             )
-            server.handle(packet: .bundle(bundle1), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle1), remoteHost: "127.0.0.1", remotePort: 8000)
 
             // this message should NOT arrive, as it is scheduled in the future after the test has ended
             let bundle2 = OSCBundle(
                 timeTag: .timeIntervalSinceNow(1.5),
                 [.message("/test2", values: [Int32(123)])]
             )
-            server.handle(packet: .bundle(bundle2), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle2), remoteHost: "127.0.0.1", remotePort: 8000)
 
             try await Task.sleep(seconds: 1.1) // allow for just over 1 second to accommodate testing overhead
         }
@@ -134,7 +134,7 @@ struct OSCTimeTag_OSC1_0_Tests {
                 [.message("/test", values: [Int32(123)])]
             )
 
-            server.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
+            server.core.handle(packet: .bundle(bundle), remoteHost: "127.0.0.1", remotePort: 8000)
 
             try await Task.sleep(seconds: 0.5)
         }
