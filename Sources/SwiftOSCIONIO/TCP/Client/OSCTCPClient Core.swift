@@ -62,7 +62,7 @@ extension OSCTCPClient.Core {
         // negative values mean indefinite (no timeout) which is a bit dangerous
         let timeout = Int64(max(1.0, timeout))
         
-        let handler = OSCTCPClientChannelHandler(oscServer: self)
+        let handler = ChannelHandler(oscServer: self)
         // create the client bootstrap
         let bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .connectTimeout(.seconds(timeout))

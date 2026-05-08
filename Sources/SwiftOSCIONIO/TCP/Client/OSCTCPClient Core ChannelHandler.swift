@@ -1,5 +1,5 @@
 //
-//  OSCTCPClientChannelHandler.swift
+//  OSCTCPClient Core ChannelHandler.swift
 //  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -8,21 +8,23 @@ import Foundation
 import NIO
 internal import SwiftOSCIOInternals
 
-/// Internal TCP receiver class so as to not expose  methods as public.
-final class OSCTCPClientChannelHandler {
-    weak var oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
-
-    /// Stores an error captured in `errorCaught` for use in `channelInactive`.
-    private var pendingError: (any Error)?
-
-    init(oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
-        self.oscServer = oscServer
+extension OSCTCPClient.Core {
+    /// Internal TCP receiver class so as to not expose  methods as public.
+    final class ChannelHandler {
+        weak var oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
+        
+        /// Stores an error captured in `errorCaught` for use in `channelInactive`.
+        private var pendingError: (any Error)?
+        
+        init(oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
+            self.oscServer = oscServer
+        }
     }
 }
 
-extension OSCTCPClientChannelHandler: @unchecked Sendable { } // TODO: unchecked
+extension OSCTCPClient.Core.ChannelHandler: @unchecked Sendable { } // TODO: unchecked
 
-extension OSCTCPClientChannelHandler: ChannelInboundHandler {
+extension OSCTCPClient.Core.ChannelHandler: ChannelInboundHandler {
     typealias InboundIn = ByteBuffer
 
     func channelActive(context: ChannelHandlerContext) {
