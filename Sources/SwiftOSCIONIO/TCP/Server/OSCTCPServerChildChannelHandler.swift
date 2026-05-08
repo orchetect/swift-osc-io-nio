@@ -29,7 +29,7 @@ extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
 
         clientID = server.addClient(channel: context.channel)
 
-        server._generateConnectedNotification(remoteHost: host, remotePort: port, clientID: clientID)
+        server.generateConnectedNotification(remoteHost: host, remotePort: port, clientID: clientID)
     }
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
@@ -55,7 +55,7 @@ extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
         let host = context.channel.remoteAddress?.ipAddress ?? ""
 
         server?.disconnectClient(clientID: clientID)
-        server?._generateDisconnectedNotification(remoteHost: host, remotePort: port, clientID: clientID, error: error)
+        server?.generateDisconnectedNotification(remoteHost: host, remotePort: port, clientID: clientID, error: error)
     }
 
     func errorCaught(context: ChannelHandlerContext, error: any Error) {

@@ -7,6 +7,7 @@
 import Foundation
 import NIO
 import SwiftOSCCore
+internal import SwiftOSCIOInternals
 
 /// Listens on a local port for TCP connections in order to send and receive OSC packets over the network.
 ///
@@ -193,13 +194,13 @@ extension OSCTCPServer: _OSCTCPHandlerProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 
-extension OSCTCPServer: _OSCTCPGeneratesServerNotificationsProtocol {
-    func _generateConnectedNotification(remoteHost: String, remotePort: UInt16, clientID: OSCTCPClientSessionID) {
+extension OSCTCPServer: OSCTCPGeneratesServerNotificationsProtocol {
+    func generateConnectedNotification(remoteHost: String, remotePort: UInt16, clientID: OSCTCPClientSessionID) {
         let notif: Notification = .connected(remoteHost: remoteHost, remotePort: remotePort, clientID: clientID)
         notificationHandler?(notif)
     }
 
-    func _generateDisconnectedNotification(
+    func generateDisconnectedNotification(
         remoteHost: String,
         remotePort: UInt16,
         clientID: OSCTCPClientSessionID,

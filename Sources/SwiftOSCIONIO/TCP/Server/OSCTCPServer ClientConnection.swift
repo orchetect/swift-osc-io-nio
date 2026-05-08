@@ -12,14 +12,14 @@ extension OSCTCPServer {
     /// Internal class encapsulating a remote client connection session accepted by a local ``OSCTCPServer``.
     final class ClientConnection {
         let channel: (any Channel)?
-        let oscServer: (any _OSCTCPHandlerProtocol & _OSCTCPGeneratesServerNotificationsProtocol)?
+        let oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesServerNotificationsProtocol)?
         let clientID: OSCTCPClientSessionID
         let remoteHost: String // cached, since Channel resets it upon disconnection
         let remotePort: UInt16 // cached, since Channel resets it upon disconnection
         let framingMode: OSCTCPFramingMode
 
         init(
-            server: any _OSCTCPHandlerProtocol & _OSCTCPGeneratesServerNotificationsProtocol,
+            server: any _OSCTCPHandlerProtocol & OSCTCPGeneratesServerNotificationsProtocol,
             channel: any Channel,
             clientID: OSCTCPClientSessionID,
             framingMode: OSCTCPFramingMode
@@ -76,7 +76,7 @@ extension OSCTCPServer.ClientConnection: _OSCTCPHandlerProtocol {
 
 extension OSCTCPServer.ClientConnection: OSCTCPGeneratesClientNotificationsProtocol {
     func generateConnectedNotification() {
-        oscServer?._generateConnectedNotification(
+        oscServer?.generateConnectedNotification(
             remoteHost: remoteHost,
             remotePort: remotePort,
             clientID: clientID
@@ -84,7 +84,7 @@ extension OSCTCPServer.ClientConnection: OSCTCPGeneratesClientNotificationsProto
     }
 
     func generateDisconnectedNotification(error: (any Error)?) {
-        oscServer?._generateDisconnectedNotification(
+        oscServer?.generateDisconnectedNotification(
             remoteHost: remoteHost,
             remotePort: remotePort,
             clientID: clientID,
