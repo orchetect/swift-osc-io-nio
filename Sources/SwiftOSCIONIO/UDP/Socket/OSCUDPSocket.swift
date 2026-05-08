@@ -169,6 +169,10 @@ extension OSCUDPSocket {
 
 // MARK: - Communication
 
+extension OSCUDPSocket: _OSCHandlerProtocol {
+    // provides implementation for dispatching incoming OSC data
+}
+
 extension OSCUDPSocket {
     /// Send an OSC bundle or message to the remote host.
     /// The ``remoteHost`` and ``remotePort`` properties are used unless one or both are
@@ -230,8 +234,6 @@ extension OSCUDPSocket {
         try send(.message(oscMessage), to: host, port: port)
     }
 }
-
-extension OSCUDPSocket: OSCHandlerProtocol { }
 
 // MARK: - Properties
 

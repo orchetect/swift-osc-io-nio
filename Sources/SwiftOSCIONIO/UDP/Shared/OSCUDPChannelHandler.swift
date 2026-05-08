@@ -9,9 +9,9 @@ import NIO
 import SwiftOSCCore
 
 final class OSCUDPChannelHandler {
-    weak var oscServer: (any OSCHandlerProtocol)?
+    weak var oscServer: (any _OSCHandlerProtocol)?
 
-    init(oscServer: (any OSCHandlerProtocol)? = nil) {
+    init(oscServer: (any _OSCHandlerProtocol)? = nil) {
         self.oscServer = oscServer
     }
 }
@@ -42,7 +42,7 @@ extension OSCUDPChannelHandler: ChannelInboundHandler {
 extension OSCUDPChannelHandler {
     /// Stub required to take `oscServer` as sending.
     private func _handle(
-        oscServer: any OSCHandlerProtocol,
+        oscServer: any _OSCHandlerProtocol,
         data: Data,
         remoteHost: String,
         remotePort: UInt16
