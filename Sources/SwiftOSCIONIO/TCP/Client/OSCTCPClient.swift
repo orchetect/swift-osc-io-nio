@@ -4,4 +4,89 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public typealias OSCTCPClient = NIOOSCTCPClient
+import Foundation
+import SwiftOSCIOCore
+
+public final class OSCTCPClient: OSCTCPClientProtocol {
+    /// Internal operations core.
+    let core: Core
+    
+    public init(
+        remoteHost: String,
+        remotePort: UInt16,
+        interface: String?,
+        timeTagMode: OSCTimeTagMode,
+        framingMode: OSCTCPFramingMode,
+        queue: DispatchQueue?,
+        receiveHandler: OSCHandlerBlock?
+    ) {
+        core = Core(
+            remoteHost: remoteHost,
+            remotePort: remotePort,
+            interface: interface,
+            timeTagMode: timeTagMode,
+            framingMode: framingMode,
+            queue: queue,
+            receiveHandler: receiveHandler
+        )
+    }
+}
+
+extension OSCTCPClient: Sendable { }
+
+// MARK: - Lifecycle
+
+extension OSCTCPClient {
+    public func connect(timeout: TimeInterval) throws {
+        try core.connect(timeout: timeout)
+    }
+    
+    public func close() {
+        core.close()
+    }
+}
+
+// MARK: - Communication
+
+extension OSCTCPClient {
+    public func send(_ packet: OSCPacket) throws {
+        try core.send(packet)
+    }
+}
+
+// MARK: - Properties
+
+extension OSCTCPClient {
+    public var timeTagMode: OSCTimeTagMode {
+        get { core.timeTagMode }
+        set { core.timeTagMode = newValue }
+    }
+    
+    public var remoteHost: String {
+        core.remoteHost
+    }
+    
+    public var remotePort: UInt16 {
+        core.remotePort
+    }
+    
+    public var interface: String? {
+        core.interface
+    }
+    
+    public var isConnected: Bool {
+        core.isConnected
+    }
+    
+    public var framingMode: OSCTCPFramingMode {
+        core.framingMode
+    }
+    
+    public func setReceiveHandler(_ handler: OSCHandlerBlock?) {
+        core.setReceiveHandler(handler)
+    }
+    
+    public func setNotificationHandler(_ handler: NotificationHandlerBlock?) {
+        core.setNotificationHandler(handler)
+    }
+}

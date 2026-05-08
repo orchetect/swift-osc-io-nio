@@ -1,5 +1,5 @@
 //
-//  NIOOSCTCPClient Core.swift
+//  OSCTCPClient Core.swift
 //  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -8,10 +8,10 @@ import Foundation
 import NIO
 import SwiftOSCIOCore
 
-extension NIOOSCTCPClient {
+extension OSCTCPClient {
     /// Internal operations class so as to not expose I/O implementation details as public.
     final class Core {
-        typealias Wrapper = NIOOSCTCPClient
+        typealias Wrapper = OSCTCPClient
         
         var channel: (any Channel)?
         let queue: DispatchQueue
@@ -52,11 +52,11 @@ extension NIOOSCTCPClient {
     }
 }
 
-extension NIOOSCTCPClient.Core: @unchecked Sendable { } // TODO: unchecked
+extension OSCTCPClient.Core: @unchecked Sendable { } // TODO: unchecked
 
 // MARK: - Lifecycle
 
-extension NIOOSCTCPClient.Core {
+extension OSCTCPClient.Core {
     func connect(timeout: TimeInterval = 5.0) throws {
         // negative values mean indefinite (no timeout) which is a bit dangerous
         let timeout = Int64(max(1.0, timeout))
@@ -95,11 +95,11 @@ extension NIOOSCTCPClient.Core {
 
 // MARK: - Communication
 
-extension NIOOSCTCPClient.Core: _OSCTCPHandlerProtocol {
+extension OSCTCPClient.Core: _OSCTCPHandlerProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 
-extension NIOOSCTCPClient.Core: _OSCTCPSendProtocol {
+extension OSCTCPClient.Core: _OSCTCPSendProtocol {
     // provides implementation for sending OSC data
     
     func send(_ oscPacket: OSCPacket) throws {
@@ -107,7 +107,7 @@ extension NIOOSCTCPClient.Core: _OSCTCPSendProtocol {
     }
 }
 
-extension NIOOSCTCPClient.Core: _OSCTCPGeneratesClientNotificationsProtocol {
+extension OSCTCPClient.Core: _OSCTCPGeneratesClientNotificationsProtocol {
     func _generateConnectedNotification() {
         let notif: Wrapper.Notification = .connected
         notificationHandler?(notif)
@@ -121,7 +121,7 @@ extension NIOOSCTCPClient.Core: _OSCTCPGeneratesClientNotificationsProtocol {
 
 // MARK: - Properties
 
-extension NIOOSCTCPClient.Core {
+extension OSCTCPClient.Core {
     func setReceiveHandler(_ handler: OSCHandlerBlock?) {
         queue.async {
             self.receiveHandler = handler
