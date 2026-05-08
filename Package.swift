@@ -17,6 +17,7 @@ let package = Package(
             name: "SwiftOSCIONIO",
             dependencies: [
                 .product(name: "SwiftOSCCore", package: "swift-osc-core"),
+                .product(name: "SwiftOSCIOCore", package: "swift-osc-core"),
                 .product(name: "NIO", package: "swift-nio")
             ],
             swiftSettings: [.define("DEBUG", .when(configuration: .debug))]
