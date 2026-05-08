@@ -30,13 +30,9 @@ public final class OSCTCPServer: OSCTCPServerProtocol {
             receiveHandler: receiveHandler
         )
     }
-}
 
-extension OSCTCPServer: @unchecked Sendable { } // TODO: unchecked
+    // MARK: - Lifecycle
 
-// MARK: - Lifecycle
-
-extension OSCTCPServer {
     public func start() throws {
         try core.start()
     }
@@ -44,11 +40,9 @@ extension OSCTCPServer {
     public func stop() {
         core.stop()
     }
-}
 
-// MARK: - Communication
+    // MARK: - Communication
 
-extension OSCTCPServer {
     public func send(_ packet: OSCPacket, toClientID clientID: OSCTCPClientSessionID) throws {
         try core.send(packet, toClientID: clientID)
     }
@@ -60,11 +54,9 @@ extension OSCTCPServer {
     ) {
         core.send(packet, toClientIDs: clientIDs, errorHandler: errorHandler)
     }
-}
 
-// MARK: - Properties
+    // MARK: - Properties
 
-extension OSCTCPServer {
     public var timeTagMode: OSCTimeTagMode {
         get { core.timeTagMode }
         set { core.timeTagMode = newValue }
@@ -102,3 +94,5 @@ extension OSCTCPServer {
         core.disconnectClient(clientID: clientID)
     }
 }
+
+extension OSCTCPServer: Sendable { }
