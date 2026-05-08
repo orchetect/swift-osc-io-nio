@@ -1,5 +1,5 @@
 //
-//  OSCTCPServerChildChannelHandler.swift
+//  OSCTCPServer Core ChildChannelHandler.swift
 //  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -7,19 +7,21 @@
 import Foundation
 import NIO
 
-final class OSCTCPServerChildChannelHandler {
-    weak var server: OSCTCPServer.Core?
-    var clientID: OSCTCPClientSessionID = 0
-
-    /// Stores an error captured in `errorCaught` for use in `channelInactive`.
-    private var pendingError: (any Error)?
-
-    init(server: OSCTCPServer.Core? = nil) {
-        self.server = server
+extension OSCTCPServer.Core {
+    final class ChildChannelHandler {
+        weak var server: OSCTCPServer.Core?
+        var clientID: OSCTCPClientSessionID = 0
+        
+        /// Stores an error captured in `errorCaught` for use in `channelInactive`.
+        private var pendingError: (any Error)?
+        
+        init(server: OSCTCPServer.Core? = nil) {
+            self.server = server
+        }
     }
 }
 
-extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
+extension OSCTCPServer.Core.ChildChannelHandler: ChannelInboundHandler {
     typealias InboundIn = ByteBuffer
 
     func channelActive(context: ChannelHandlerContext) {
@@ -64,4 +66,4 @@ extension OSCTCPServerChildChannelHandler: ChannelInboundHandler {
     }
 }
 
-extension OSCTCPServerChildChannelHandler: @unchecked Sendable { }
+extension OSCTCPServer.Core.ChildChannelHandler: @unchecked Sendable { }

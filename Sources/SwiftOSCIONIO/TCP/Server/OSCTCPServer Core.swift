@@ -76,7 +76,7 @@ extension OSCTCPServer.Core {
                     case .osc1_1:
                         try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPSLIPFrameDecoder()))
                     }
-                    try channel.pipeline.syncOperations.addHandler(OSCTCPServerChildChannelHandler(server: self))
+                    try channel.pipeline.syncOperations.addHandler(ChildChannelHandler(server: self))
                 }
             }
         
