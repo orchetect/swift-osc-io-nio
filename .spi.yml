@@ -3,3 +3,9 @@ builder:
   configs:
     - documentation_targets: [SwiftOSCIONIO]
       scheme: swift-osc-io-nio
+    - platform: linux
+      target: NOT_SUPPORTED
+    - platform: android
+      target: NOT_SUPPORTED
+    - platform: wasm
+      target: NOT_SUPPORTED
