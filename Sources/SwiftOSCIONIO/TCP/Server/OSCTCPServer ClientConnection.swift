@@ -6,6 +6,7 @@
 
 import Foundation
 import NIO
+internal import SwiftOSCIOInternals
 
 extension OSCTCPServer {
     /// Internal class encapsulating a remote client connection session accepted by a local ``OSCTCPServer``.
@@ -73,8 +74,8 @@ extension OSCTCPServer.ClientConnection: _OSCTCPHandlerProtocol {
     }
 }
 
-extension OSCTCPServer.ClientConnection: _OSCTCPGeneratesClientNotificationsProtocol {
-    func _generateConnectedNotification() {
+extension OSCTCPServer.ClientConnection: OSCTCPGeneratesClientNotificationsProtocol {
+    func generateConnectedNotification() {
         oscServer?._generateConnectedNotification(
             remoteHost: remoteHost,
             remotePort: remotePort,
@@ -82,7 +83,7 @@ extension OSCTCPServer.ClientConnection: _OSCTCPGeneratesClientNotificationsProt
         )
     }
 
-    func _generateDisconnectedNotification(error: (any Error)?) {
+    func generateDisconnectedNotification(error: (any Error)?) {
         oscServer?._generateDisconnectedNotification(
             remoteHost: remoteHost,
             remotePort: remotePort,

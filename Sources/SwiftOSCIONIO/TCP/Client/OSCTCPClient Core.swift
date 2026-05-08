@@ -7,6 +7,7 @@
 import Foundation
 import NIO
 import SwiftOSCIOCore
+internal import SwiftOSCIOInternals
 
 extension OSCTCPClient {
     /// Internal operations class so as to not expose I/O implementation details as public.
@@ -107,13 +108,13 @@ extension OSCTCPClient.Core: _OSCTCPSendProtocol {
     }
 }
 
-extension OSCTCPClient.Core: _OSCTCPGeneratesClientNotificationsProtocol {
-    func _generateConnectedNotification() {
+extension OSCTCPClient.Core: OSCTCPGeneratesClientNotificationsProtocol {
+    func generateConnectedNotification() {
         let notif: Wrapper.Notification = .connected
         notificationHandler?(notif)
     }
     
-    func _generateDisconnectedNotification(error: (any Error)?) {
+    func generateDisconnectedNotification(error: (any Error)?) {
         let notif: Wrapper.Notification = .disconnected(error: error)
         notificationHandler?(notif)
     }

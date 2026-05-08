@@ -6,15 +6,16 @@
 
 import Foundation
 import NIO
+internal import SwiftOSCIOInternals
 
 /// Internal TCP receiver class so as to not expose  methods as public.
 final class OSCTCPClientChannelHandler {
-    weak var oscServer: (any _OSCTCPHandlerProtocol & _OSCTCPGeneratesClientNotificationsProtocol)?
+    weak var oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
 
     /// Stores an error captured in `errorCaught` for use in `channelInactive`.
     private var pendingError: (any Error)?
 
-    init(oscServer: (any _OSCTCPHandlerProtocol & _OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
+    init(oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
         self.oscServer = oscServer
     }
 }
@@ -26,7 +27,7 @@ extension OSCTCPClientChannelHandler: ChannelInboundHandler {
 
     func channelActive(context: ChannelHandlerContext) {
         // send notification
-        oscServer?._generateConnectedNotification()
+        oscServer?.generateConnectedNotification()
     }
 
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
@@ -52,7 +53,7 @@ extension OSCTCPClientChannelHandler: ChannelInboundHandler {
         let error = pendingError
         pendingError = nil
 
-        oscServer?._generateDisconnectedNotification(error: error)
+        oscServer?.generateDisconnectedNotification(error: error)
     }
 
     func errorCaught(context: ChannelHandlerContext, error: any Error) {
