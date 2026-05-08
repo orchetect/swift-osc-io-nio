@@ -15,7 +15,7 @@ extension OSCTCPServer {
         typealias Parent = OSCTCPServer
         
         var channel: (any Channel)?
-        private var _clients: [OSCTCPClientSessionID: OSCTCPServer.ClientConnection] = [:]
+        private var _clients: [OSCTCPClientSessionID: ClientConnection] = [:]
         let queue: DispatchQueue
         var receiveHandler: OSCHandlerBlock?
         var notificationHandler: NotificationHandlerBlock?

@@ -1,5 +1,5 @@
 //
-//  OSCTCPServer ClientConnection.swift
+//  OSCTCPServer Core ClientConnection.swift
 //  SwiftOSC I/O: SwiftNIO • https://github.com/orchetect/swift-osc-io-nio
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -8,7 +8,7 @@ import Foundation
 import NIO
 internal import SwiftOSCIOInternals
 
-extension OSCTCPServer {
+extension OSCTCPServer.Core {
     /// Internal class encapsulating a remote client connection session accepted by a local ``OSCTCPServer``.
     final class ClientConnection {
         let channel: (any Channel)?
@@ -38,11 +38,11 @@ extension OSCTCPServer {
     }
 }
 
-extension OSCTCPServer.ClientConnection: @unchecked Sendable { } // TODO: unchecked
+extension OSCTCPServer.Core.ClientConnection: @unchecked Sendable { } // TODO: unchecked
 
 // MARK: - Lifecycle
 
-extension OSCTCPServer.ClientConnection {
+extension OSCTCPServer.Core.ClientConnection {
     func close() {
         channel?.close(promise: nil)
     }
@@ -50,13 +50,13 @@ extension OSCTCPServer.ClientConnection {
 
 // MARK: - Communication
 
-extension OSCTCPServer.ClientConnection: _OSCTCPSendProtocol {
+extension OSCTCPServer.Core.ClientConnection: _OSCTCPSendProtocol {
     func send(_ oscPacket: OSCPacket) throws {
         try _send(oscPacket)
     }
 }
 
-extension OSCTCPServer.ClientConnection: _OSCTCPHandlerProtocol {
+extension OSCTCPServer.Core.ClientConnection: _OSCTCPHandlerProtocol {
     var queue: DispatchQueue {
         oscServer?.queue ?? .global()
     }
@@ -74,7 +74,7 @@ extension OSCTCPServer.ClientConnection: _OSCTCPHandlerProtocol {
     }
 }
 
-extension OSCTCPServer.ClientConnection: OSCTCPGeneratesClientNotificationsProtocol {
+extension OSCTCPServer.Core.ClientConnection: OSCTCPGeneratesClientNotificationsProtocol {
     func generateConnectedNotification() {
         oscServer?.generateConnectedNotification(
             remoteHost: remoteHost,
