@@ -16,8 +16,8 @@
       "parallelizable" : false,
       "target" : {
         "containerPath" : "container:",
-        "identifier" : "SwiftOSCIONIOTests",
-        "name" : "SwiftOSCIONIOTests"
+        "identifier" : "SwiftOSCIOTests",
+        "name" : "SwiftOSCIOTests"
       }
     }
   ],

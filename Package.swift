@@ -23,7 +23,7 @@ let package = Package(
             swiftSettings: [.define("DEBUG", .when(configuration: .debug))]
         ),
         .testTarget(
-            name: "SwiftOSCIONIOTests",
+            name: "SwiftOSCIOTests",
             dependencies: [
                 "SwiftOSCIO"
             ]
@@ -40,7 +40,6 @@ let package = Package(
         func getEnvironmentVar(_ name: String) -> String? {
             ProcessInfo.processInfo.environment[name]
         }
-
     #elseif canImport(CoreFoundation)
         import CoreFoundation
 
