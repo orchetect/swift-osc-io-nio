@@ -1,5 +1,5 @@
 version: 1
 builder:
   configs:
-    - documentation_targets: [SwiftOSCIONIO]
+    - documentation_targets: [SwiftOSCIO]
       scheme: swift-osc-io-nio
