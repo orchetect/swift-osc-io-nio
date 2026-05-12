@@ -131,9 +131,9 @@ extension OSCUDPSocket.Core {
         
         let data = try packet.rawData()
         
-        let port = (port ?? remotePort)
+        let port = Int(port ?? remotePort)
         
-        let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: Int(port))
+        let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
         
         let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
         
