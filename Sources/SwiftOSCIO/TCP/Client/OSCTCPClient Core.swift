@@ -58,13 +58,14 @@ extension OSCTCPClient.Core: @unchecked Sendable { } // TODO: unchecked
 // MARK: - Lifecycle
 
 extension OSCTCPClient.Core {
-    func connect(timeout: TimeInterval = 5.0) throws {
+    func connect(timeout: TimeInterval) throws {
         // negative values mean indefinite (no timeout) which is a bit dangerous
         let timeout = Int64(max(1.0, timeout))
         
         let handler = ChannelHandler(oscServer: self)
+        
         // create the client bootstrap
-        let bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+        var bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .connectTimeout(.seconds(timeout))
             .channelInitializer { channel in
                 channel.eventLoop.makeCompletedFuture {
@@ -79,6 +80,13 @@ extension OSCTCPClient.Core {
                     try channel.pipeline.syncOperations.addHandler(handler)
                 }
             }
+        
+        // bind to interface, if specified
+        if let interface {
+            let interfaceAddress = try SocketAddress.makeAddressResolvingHost(interface, port: 0)
+            bootstrap = bootstrap
+                .bind(to: interfaceAddress)
+        }
         
         // connect to host
         channel = try bootstrap
