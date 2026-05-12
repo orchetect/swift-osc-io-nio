@@ -38,7 +38,7 @@ To use this extension as standalone dependency (instead of importing the **swift
 
 ## Documentation
 
-For I/O API documentation, see the [SwiftOSCCore online documentation](https://swiftpackageindex.com/orchetect/swift-osc-core/1.0.0/documentation/swiftosciocore) for this repository.
+For I/O API documentation, see the [SwiftOSCCore online documentation](https://swiftpackageindex.com/orchetect/swift-osc-core/documentation/swiftosciocore) for this repository.
 
 For example code see the main [SwiftOSC](https://github.com/orchetect/swift-osc) repository.
 
