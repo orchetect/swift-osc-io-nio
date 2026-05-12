@@ -75,17 +75,32 @@ extension OSCUDPClient.Core {
         
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
         let broadcast: ChannelOptions.Types.SocketOption.Value = _isIPv4BroadcastEnabled ? 1 : 0
-        let host: String = interface ?? "0.0.0.0"
-        let port: UInt16 = _localPort ?? 0
+        
+        // bind to interface, if specified
+        let host: String
+        if let interface {
+            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first,
+                  let address = interface.address.ipAddress
+            else {
+                throw OSCUDPClientError.invalidInterface
+            }
+            host = address
+        } else {
+            host = "0.0.0.0"
+        }
+        
+        let port = Int(_localPort ?? 0)
         
         // Channel Setup
-        channel = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+        var bootstrap = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             // configure port reuse
             .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
             // configure ipv4 broadcast
             .channelOption(.socketOption(.so_broadcast), value: broadcast)
-            // bin to host and port
-            .bind(host: host, port: Int(port))
+        
+        channel = try bootstrap
+            // bind to host and port
+            .bind(host: host, port: port)
             // wait for resolution of the `EventLoopFuture`
             .wait()
     }

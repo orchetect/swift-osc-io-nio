@@ -83,9 +83,11 @@ extension OSCTCPClient.Core {
         
         // bind to interface, if specified
         if let interface {
-            let interfaceAddress = try SocketAddress.makeAddressResolvingHost(interface, port: 0)
+            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first else {
+                throw OSCTCPClientError.invalidInterface
+            }
             bootstrap = bootstrap
-                .bind(to: interfaceAddress)
+                .bind(to: interface.address)
         }
         
         // connect to host

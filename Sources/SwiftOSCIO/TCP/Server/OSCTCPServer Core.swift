@@ -66,7 +66,7 @@ extension OSCTCPServer.Core {
     func start() throws {
         guard !isStarted else { return }
         
-        let bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+        var bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .childChannelInitializer { channel in
                 channel.eventLoop.makeCompletedFuture {
@@ -80,9 +80,23 @@ extension OSCTCPServer.Core {
                 }
             }
         
-        let host = interface ?? "0.0.0.0"
+        // bind to interface, if specified
+        let host: String
+        if let interface {
+            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first,
+                  let address = interface.address.ipAddress
+            else {
+                throw OSCTCPClientError.invalidInterface
+            }
+            host = address
+        } else {
+            host = "0.0.0.0"
+        }
+        
+        let port = Int(_localPort ?? localPort)
+        
         channel = try bootstrap
-            .bind(host: host, port: Int(_localPort ?? localPort))
+            .bind(host: host, port: port)
             .wait()
     }
     
