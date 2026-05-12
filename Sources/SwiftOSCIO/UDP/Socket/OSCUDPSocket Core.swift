@@ -93,7 +93,7 @@ extension OSCUDPSocket.Core {
             guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first,
                   let address = interface.address.ipAddress
             else {
-                throw OSCTCPClientError.invalidInterface
+                throw OSCIOError.invalidInterface
             }
             host = address
         } else {
@@ -122,11 +122,11 @@ extension OSCUDPSocket.Core: _OSCHandlerProtocol {
 extension OSCUDPSocket.Core {
     func send(_ packet: OSCPacket, to host: String?, port: UInt16?) throws {
         guard let channel, isStarted else {
-            throw OSCUDPClientError.notStarted
+            throw OSCIOError.notStarted
         }
         
         guard let toHost = host ?? remoteHost else {
-            throw OSCUDPClientError.noRemoteHost
+            throw OSCIOError.noRemoteHost
         }
         
         let data = try packet.rawData()

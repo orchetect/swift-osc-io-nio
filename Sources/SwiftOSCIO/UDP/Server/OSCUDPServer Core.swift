@@ -83,7 +83,7 @@ extension OSCUDPServer.Core {
             guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first,
                   let address = interface.address.ipAddress
             else {
-                throw OSCTCPClientError.invalidInterface
+                throw OSCIOError.invalidInterface
             }
             host = address
         } else {

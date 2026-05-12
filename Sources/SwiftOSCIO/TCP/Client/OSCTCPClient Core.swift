@@ -84,7 +84,7 @@ extension OSCTCPClient.Core {
         // bind to interface, if specified
         if let interface {
             guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first else {
-                throw OSCTCPClientError.invalidInterface
+                throw OSCIOError.invalidInterface
             }
             bootstrap = bootstrap
                 .bind(to: interface.address)

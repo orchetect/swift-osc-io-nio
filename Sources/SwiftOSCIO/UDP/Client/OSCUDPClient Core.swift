@@ -82,7 +82,7 @@ extension OSCUDPClient.Core {
             guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first,
                   let address = interface.address.ipAddress
             else {
-                throw OSCUDPClientError.invalidInterface
+                throw OSCIOError.invalidInterface
             }
             host = address
         } else {
@@ -123,7 +123,7 @@ extension OSCUDPClient.Core {
         }
         
         guard let channel else {
-            throw OSCUDPClientError.notStarted
+            throw OSCIOError.notStarted
         }
         
         // resolve host and port to `SocketAddress`

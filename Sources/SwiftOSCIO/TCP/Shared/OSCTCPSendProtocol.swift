@@ -20,9 +20,9 @@ extension _OSCTCPSendProtocol {
         try _send(packet.rawData())
     }
 
-    private func _send(_ oscData: Data) throws(OSCTCPClientError) {
+    private func _send(_ oscData: Data) throws(OSCIOError) {
         guard let channel else {
-            throw OSCTCPClientError.notStarted
+            throw OSCIOError.notStarted
         }
 
         // frame data
