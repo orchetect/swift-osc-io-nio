@@ -16,17 +16,15 @@ public final class OSCUDPSocket: OSCUDPSocketProtocol {
         remoteHost: String?,
         remotePort: UInt16?,
         interface: String?,
-        timeTagMode: OSCTimeTagMode,
         isIPv4BroadcastEnabled: Bool,
         queue: DispatchQueue?,
-        receiveHandler: OSCHandlerBlock?
+        receiveHandler: OSCPacketHandler?
     ) {
         core = Core(
             localPort: localPort,
             remoteHost: remoteHost,
             remotePort: remotePort,
             interface: interface,
-            timeTagMode: timeTagMode,
             isIPv4BroadcastEnabled: isIPv4BroadcastEnabled,
             queue: queue,
             receiveHandler: receiveHandler
@@ -50,11 +48,6 @@ public final class OSCUDPSocket: OSCUDPSocketProtocol {
     }
 
     // MARK: - Properties
-
-    public var timeTagMode: OSCTimeTagMode {
-        get { core.timeTagMode }
-        set { core.timeTagMode = newValue }
-    }
 
     public var remoteHost: String? {
         get { core.remoteHost }
@@ -82,7 +75,7 @@ public final class OSCUDPSocket: OSCUDPSocketProtocol {
         core.isStarted
     }
 
-    public func setReceiveHandler(_ handler: OSCHandlerBlock?) {
+    public func setReceiveHandler(_ handler: OSCPacketHandler?) {
         core.setReceiveHandler(handler)
     }
 }

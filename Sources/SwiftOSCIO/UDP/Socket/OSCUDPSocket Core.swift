@@ -15,9 +15,7 @@ extension OSCUDPSocket {
 
         private var channel: (any Channel)?
         let queue: DispatchQueue
-        var receiveHandler: OSCHandlerBlock?
-
-        var timeTagMode: OSCTimeTagMode
+        var receiveHandler: OSCPacketHandler?
 
         var remoteHost: String?
 
@@ -50,16 +48,14 @@ extension OSCUDPSocket {
             remoteHost: String?,
             remotePort: UInt16?,
             interface: String?,
-            timeTagMode: OSCTimeTagMode,
             isIPv4BroadcastEnabled: Bool,
             queue: DispatchQueue?,
-            receiveHandler: OSCHandlerBlock?
+            receiveHandler: OSCPacketHandler?
         ) {
             self.remoteHost = remoteHost
             _localPort = (localPort == nil || localPort == 0) ? nil : localPort
             _remotePort = (remotePort == nil || remotePort == 0) ? nil : remotePort
             self.interface = interface
-            self.timeTagMode = timeTagMode
             self.isIPv4BroadcastEnabled = isIPv4BroadcastEnabled
             let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPSocket.queue")
             self.queue = queue
@@ -116,7 +112,7 @@ extension OSCUDPSocket.Core {
 
 // MARK: - Communication
 
-extension OSCUDPSocket.Core: _OSCHandlerProtocol {
+extension OSCUDPSocket.Core: _OSCPacketDispatcherProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 
@@ -147,7 +143,7 @@ extension OSCUDPSocket.Core {
 // MARK: - Properties
 
 extension OSCUDPSocket.Core {
-    func setReceiveHandler(_ handler: OSCHandlerBlock?) {
+    func setReceiveHandler(_ handler: OSCPacketHandler?) {
         queue.async {
             self.receiveHandler = handler
         }

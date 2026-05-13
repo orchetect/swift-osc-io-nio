@@ -11,12 +11,12 @@ import NIO
 extension OSCTCPClient.Core {
     /// Internal TCP receiver class so as to not expose  methods as public.
     final class ChannelHandler {
-        weak var oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
+        weak var oscServer: (any _OSCTCPPacketHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
 
         /// Stores an error captured in `errorCaught` for use in `channelInactive`.
         private var pendingError: (any Error)?
 
-        init(oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
+        init(oscServer: (any _OSCTCPPacketHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
             self.oscServer = oscServer
         }
     }

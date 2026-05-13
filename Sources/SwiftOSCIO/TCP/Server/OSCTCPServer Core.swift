@@ -17,10 +17,8 @@ extension OSCTCPServer {
         var channel: (any Channel)?
         private var _clients: [OSCTCPClientSessionID: ClientConnection] = [:]
         let queue: DispatchQueue
-        var receiveHandler: OSCHandlerBlock?
+        var receiveHandler: OSCPacketHandler?
         var notificationHandler: NotificationHandlerBlock?
-
-        var timeTagMode: OSCTimeTagMode
 
         var localPort: UInt16 {
             UInt16(channel?.localAddress?.port ?? 0)
@@ -39,14 +37,12 @@ extension OSCTCPServer {
         init(
             port: UInt16?,
             interface: String?,
-            timeTagMode: OSCTimeTagMode,
             framingMode: OSCTCPFramingMode,
             queue: DispatchQueue?,
-            receiveHandler: OSCHandlerBlock?
+            receiveHandler: OSCPacketHandler?
         ) {
             _localPort = (port == nil || port == 0) ? nil : port
             self.interface = interface
-            self.timeTagMode = timeTagMode
             self.framingMode = framingMode
             let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPServer.queue")
             self.queue = queue
@@ -138,7 +134,7 @@ extension OSCTCPServer.Core {
     }
 }
 
-extension OSCTCPServer.Core: _OSCTCPHandlerProtocol {
+extension OSCTCPServer.Core: _OSCTCPPacketHandlerProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 
@@ -162,7 +158,7 @@ extension OSCTCPServer.Core: OSCTCPGeneratesServerNotificationsProtocol {
 // MARK: - Properties
 
 extension OSCTCPServer.Core {
-    func setReceiveHandler(_ handler: OSCHandlerBlock?) {
+    func setReceiveHandler(_ handler: OSCPacketHandler?) {
         queue.async {
             self.receiveHandler = handler
         }

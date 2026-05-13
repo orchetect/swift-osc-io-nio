@@ -16,15 +16,13 @@ public final class OSCTCPServer: OSCTCPServerProtocol {
     public init(
         port: UInt16?,
         interface: String?,
-        timeTagMode: OSCTimeTagMode,
         framingMode: OSCTCPFramingMode,
         queue: DispatchQueue?,
-        receiveHandler: OSCHandlerBlock?
+        receiveHandler: OSCPacketHandler?
     ) {
         core = Core(
             port: port,
             interface: interface,
-            timeTagMode: timeTagMode,
             framingMode: framingMode,
             queue: queue,
             receiveHandler: receiveHandler
@@ -57,11 +55,6 @@ public final class OSCTCPServer: OSCTCPServerProtocol {
 
     // MARK: - Properties
 
-    public var timeTagMode: OSCTimeTagMode {
-        get { core.timeTagMode }
-        set { core.timeTagMode = newValue }
-    }
-
     public var localPort: UInt16 {
         core.localPort
     }
@@ -78,7 +71,7 @@ public final class OSCTCPServer: OSCTCPServerProtocol {
         core.framingMode
     }
 
-    public func setReceiveHandler(_ handler: OSCHandlerBlock?) {
+    public func setReceiveHandler(_ handler: OSCPacketHandler?) {
         core.setReceiveHandler(handler)
     }
 
