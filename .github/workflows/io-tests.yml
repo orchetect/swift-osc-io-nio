@@ -25,7 +25,7 @@ on:
     - cron: '40 11 * * *'   # once a day @ 11:40am UTC (4:40am PST)
 
 env:
-  IO_REF: standardized-io # default should be main, or ${{ github.head_ref || github.ref_name }} for current branch/PR
+  IO_REF: main # can temporarily swap out to a development branch, or ${{ github.head_ref || github.ref_name }} for current branch/PR
   IO_SCHEME: IOTests
   IO_WORKSPACEPATH: .swiftpm/xcode/package.xcworkspace
 
