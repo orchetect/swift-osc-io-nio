@@ -10,7 +10,7 @@ import SwiftOSCCore
 public final class OSCUDPServer: OSCUDPServerProtocol {
     /// Internal operations core.
     let core: Core
-    
+
     public init(
         port: UInt16?,
         interface: String?,
@@ -28,41 +28,41 @@ public final class OSCUDPServer: OSCUDPServerProtocol {
             receiveHandler: receiveHandler
         )
     }
-    
+
     // MARK: - Lifecycle
-    
+
     public func start() throws {
         try core.start()
     }
-    
+
     public func stop() {
         core.stop()
     }
-    
+
     // MARK: - Properties
-    
+
     public var timeTagMode: OSCTimeTagMode {
         get { core.timeTagMode }
         set { core.timeTagMode = newValue }
     }
-    
+
     public var localPort: UInt16 {
         core.localPort
     }
-    
+
     public var interface: String? {
         core.interface
     }
-    
+
     public var isPortReuseEnabled: Bool {
         get { core.isPortReuseEnabled }
         set { core.isPortReuseEnabled = newValue }
     }
-    
+
     public var isStarted: Bool {
         core.isStarted
     }
-    
+
     public func setReceiveHandler(_ handler: OSCHandlerBlock?) {
         core.setReceiveHandler(handler)
     }

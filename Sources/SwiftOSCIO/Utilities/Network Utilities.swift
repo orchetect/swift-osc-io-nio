@@ -22,13 +22,13 @@ func networkDevices(
     protocols: [NIOBSDSocket.ProtocolFamily]? = nil
 ) throws -> [(name: String, address: SocketAddress)] {
     var devices = try networkDevices()
-    
+
     if let protocols {
         devices = devices
             .filter { protocols.contains($0.address.protocol) }
     }
-        
-    return devices.filter({
+
+    return devices.filter {
         $0.name == interface || $0.address.ipAddress == interface
-    })
+    }
 }

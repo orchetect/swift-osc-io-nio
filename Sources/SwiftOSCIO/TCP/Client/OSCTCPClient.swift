@@ -10,7 +10,7 @@ import SwiftOSCIOCore
 public final class OSCTCPClient: OSCTCPClientProtocol {
     /// Internal operations core.
     let core: Core
-    
+
     public init(
         remoteHost: String,
         remotePort: UInt16,
@@ -36,7 +36,7 @@ public final class OSCTCPClient: OSCTCPClientProtocol {
     public func connect(timeout: TimeInterval) throws {
         try core.connect(timeout: timeout)
     }
-    
+
     public func close() {
         core.close()
     }
@@ -53,31 +53,31 @@ public final class OSCTCPClient: OSCTCPClientProtocol {
         get { core.timeTagMode }
         set { core.timeTagMode = newValue }
     }
-    
+
     public var remoteHost: String {
         core.remoteHost
     }
-    
+
     public var remotePort: UInt16 {
         core.remotePort
     }
-    
+
     public var interface: String? {
         core.interface
     }
-    
+
     public var isConnected: Bool {
         core.isConnected
     }
-    
+
     public var framingMode: OSCTCPFramingMode {
         core.framingMode
     }
-    
+
     public func setReceiveHandler(_ handler: OSCHandlerBlock?) {
         core.setReceiveHandler(handler)
     }
-    
+
     public func setNotificationHandler(_ handler: NotificationHandlerBlock?) {
         core.setNotificationHandler(handler)
     }

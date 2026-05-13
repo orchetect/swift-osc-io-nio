@@ -11,10 +11,10 @@ extension OSCTCPServer.Core {
     final class ChildChannelHandler {
         weak var server: OSCTCPServer.Core?
         var clientID: OSCTCPClientSessionID = 0
-        
+
         /// Stores an error captured in `errorCaught` for use in `channelInactive`.
         private var pendingError: (any Error)?
-        
+
         init(server: OSCTCPServer.Core? = nil) {
             self.server = server
         }

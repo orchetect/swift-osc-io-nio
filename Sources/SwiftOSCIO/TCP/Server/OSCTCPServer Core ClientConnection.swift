@@ -4,9 +4,9 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
+internal import SwiftOSCIOInternals
 import Foundation
 import NIO
-internal import SwiftOSCIOInternals
 
 extension OSCTCPServer.Core {
     /// Internal class encapsulating a remote client connection session accepted by a local ``OSCTCPServer``.
@@ -68,7 +68,7 @@ extension OSCTCPServer.Core.ClientConnection: _OSCTCPHandlerProtocol {
     var receiveHandler: OSCHandlerBlock? {
         oscServer?.receiveHandler
     }
-    
+
     func setReceiveHandler(_ handler: OSCHandlerBlock?) {
         oscServer?.setReceiveHandler(handler)
     }

@@ -12,29 +12,30 @@ extension OSCUDPServer {
     /// Internal operations class so as to not expose I/O implementation details as public.
     final class Core {
         typealias Parent = OSCUDPServer
-        
-        private var channel: (any Channel)? = nil
+
+        private var channel: (any Channel)?
         let queue: DispatchQueue
         var receiveHandler: OSCHandlerBlock?
-        
+
         var timeTagMode: OSCTimeTagMode
-        
+
         var localPort: UInt16 {
             if let port = channel?.localAddress?.port {
                 return UInt16(port)
             }
             return _localPort ?? 0
         }
+
         private var _localPort: UInt16?
-        
+
         private(set) var interface: String?
-        
+
         var isPortReuseEnabled: Bool = false
-        
+
         var isStarted: Bool {
             channel?.isActive ?? false
         }
-        
+
         init(
             port: UInt16?,
             interface: String?,
@@ -51,7 +52,7 @@ extension OSCUDPServer {
             self.queue = queue
             self.receiveHandler = receiveHandler
         }
-        
+
         deinit {
             stop()
         }
@@ -65,18 +66,18 @@ extension OSCUDPServer.Core: @unchecked Sendable { } // TODO: unchecked
 extension OSCUDPServer.Core {
     func start() throws {
         guard !isStarted else { return }
-        
+
         stop()
-        
+
         let handler = OSCUDPChannelHandler(oscServer: self)
-        
+
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
         var bootstrap = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
             .channelInitializer { channel in
                 channel.pipeline.addHandler(handler)
             }
-        
+
         // bind to interface, if specified
         let host: String
         if let interface {
@@ -89,14 +90,14 @@ extension OSCUDPServer.Core {
         } else {
             host = "0.0.0.0"
         }
-        
+
         let port = Int(_localPort ?? localPort)
-        
+
         channel = try bootstrap
             .bind(host: host, port: port)
             .wait()
     }
-    
+
     func stop() {
         channel?.close(promise: nil)
         channel = nil

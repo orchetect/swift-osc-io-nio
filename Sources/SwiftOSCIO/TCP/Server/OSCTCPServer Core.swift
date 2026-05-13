@@ -4,37 +4,38 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
+internal import SwiftOSCIOInternals
 import Foundation
 import NIO
 import SwiftOSCCore
-internal import SwiftOSCIOInternals
 
 extension OSCTCPServer {
     /// Internal operations class so as to not expose I/O implementation details as public.
     final class Core {
         typealias Parent = OSCTCPServer
-        
+
         var channel: (any Channel)?
         private var _clients: [OSCTCPClientSessionID: ClientConnection] = [:]
         let queue: DispatchQueue
         var receiveHandler: OSCHandlerBlock?
         var notificationHandler: NotificationHandlerBlock?
-        
+
         var timeTagMode: OSCTimeTagMode
-        
+
         var localPort: UInt16 {
             UInt16(channel?.localAddress?.port ?? 0)
         }
+
         private var _localPort: UInt16?
-        
+
         let interface: String?
-        
+
         var isStarted: Bool {
             channel?.isActive ?? false
         }
-        
+
         let framingMode: OSCTCPFramingMode
-        
+
         init(
             port: UInt16?,
             interface: String?,
@@ -51,7 +52,7 @@ extension OSCTCPServer {
             self.queue = queue
             self.receiveHandler = receiveHandler
         }
-        
+
         deinit {
             stop()
         }
@@ -65,7 +66,7 @@ extension OSCTCPServer.Core: @unchecked Sendable { } // TODO: unchecked
 extension OSCTCPServer.Core {
     func start() throws {
         guard !isStarted else { return }
-        
+
         var bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .childChannelInitializer { channel in
@@ -79,7 +80,7 @@ extension OSCTCPServer.Core {
                     try channel.pipeline.syncOperations.addHandler(ChildChannelHandler(server: self))
                 }
             }
-        
+
         // bind to interface, if specified
         let host: String
         if let interface {
@@ -92,18 +93,18 @@ extension OSCTCPServer.Core {
         } else {
             host = "0.0.0.0"
         }
-        
+
         let port = Int(_localPort ?? localPort)
-        
+
         channel = try bootstrap
             .bind(host: host, port: port)
             .wait()
     }
-    
+
     func stop() {
         // disconnect all clients
         closeClients()
-        
+
         // close server
         channel?.close(promise: nil)
         channel = nil
@@ -127,12 +128,12 @@ extension OSCTCPServer.Core {
             }
         }
     }
-    
+
     func send(_ oscPacket: OSCPacket, toClientID clientID: OSCTCPClientSessionID) throws {
         guard let connection = _clients[clientID] else {
             throw OSCIOError.clientNotFound(clientID: clientID)
         }
-        
+
         try connection.send(oscPacket)
     }
 }
@@ -146,7 +147,7 @@ extension OSCTCPServer.Core: OSCTCPGeneratesServerNotificationsProtocol {
         let notif: Parent.Notification = .connected(remoteHost: remoteHost, remotePort: remotePort, clientID: clientID)
         notificationHandler?(notif)
     }
-    
+
     func generateDisconnectedNotification(
         remoteHost: String,
         remotePort: UInt16,
@@ -197,15 +198,15 @@ extension OSCTCPServer.Core {
             closeClient(clientID: clientID)
         }
     }
-    
+
     func addClient(channel: any Channel) -> OSCTCPClientSessionID {
         let clientID = newClientID()
         let connection = ClientConnection(server: self, channel: channel, clientID: clientID, framingMode: framingMode)
         _clients[clientID] = connection
-        
+
         return clientID
     }
-    
+
     /// Generate a new client ID that is not currently in use by any connected client(s).
     private func newClientID() -> OSCTCPClientSessionID {
         var clientID = 0
@@ -216,7 +217,7 @@ extension OSCTCPServer.Core {
         assert(clientID > 0)
         return clientID
     }
-    
+
     /// Close a connection and remove it from the list of connected clients.
     func closeClient(clientID: Int) {
         _clients[clientID]?.close()

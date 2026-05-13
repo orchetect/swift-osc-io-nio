@@ -12,38 +12,39 @@ extension OSCUDPSocket {
     /// Internal operations class so as to not expose I/O implementation details as public.
     final class Core {
         typealias Parent = OSCUDPSocket
-        
+
         private var channel: (any Channel)?
         let queue: DispatchQueue
         var receiveHandler: OSCHandlerBlock?
-        
-        
+
         var timeTagMode: OSCTimeTagMode
-        
+
         var remoteHost: String?
-        
+
         var localPort: UInt16 {
             if let port = channel?.localAddress?.port {
                 return UInt16(port)
             }
             return _localPort ?? 0
         }
+
         private var _localPort: UInt16?
-        
+
         var remotePort: UInt16 {
             get { _remotePort ?? localPort }
             set { _remotePort = (newValue == 0) ? nil : newValue }
         }
+
         private var _remotePort: UInt16?
-        
+
         private(set) var interface: String?
-        
+
         let isIPv4BroadcastEnabled: Bool
-        
+
         var isStarted: Bool {
             channel?.isActive ?? false
         }
-        
+
         init(
             localPort: UInt16?,
             remoteHost: String?,
@@ -64,7 +65,7 @@ extension OSCUDPSocket {
             self.queue = queue
             self.receiveHandler = receiveHandler
         }
-        
+
         deinit {
             stop()
         }
@@ -78,7 +79,7 @@ extension OSCUDPSocket.Core: @unchecked Sendable { }
 extension OSCUDPSocket.Core {
     func start() throws {
         guard !isStarted else { return }
-        
+
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
         var bootstrap = DatagramBootstrap(group: group)
@@ -86,7 +87,7 @@ extension OSCUDPSocket.Core {
             .channelInitializer { channel in
                 channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
             }
-        
+
         // bind to interface, if specified
         let host: String
         if let interface {
@@ -99,14 +100,14 @@ extension OSCUDPSocket.Core {
         } else {
             host = "0.0.0.0"
         }
-        
+
         let port = Int(_localPort ?? localPort)
-        
+
         channel = try bootstrap
             .bind(host: host, port: port)
             .wait()
     }
-    
+
     func stop() {
         try? channel?.close().wait()
         channel = nil
@@ -124,21 +125,21 @@ extension OSCUDPSocket.Core {
         guard let channel, isStarted else {
             throw OSCIOError.notStarted
         }
-        
+
         guard let toHost = host ?? remoteHost else {
             throw OSCIOError.noRemoteHost
         }
-        
+
         let data = try packet.rawData()
-        
+
         let port = Int(port ?? remotePort)
-        
+
         let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
-        
+
         let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
-        
+
         let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
-        
+
         try channel.writeAndFlush(envelope).wait()
     }
 }

@@ -4,21 +4,21 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
+internal import SwiftOSCIOInternals
 import Foundation
 import NIO
 import SwiftOSCIOCore
-internal import SwiftOSCIOInternals
 
 extension OSCTCPClient {
     /// Internal operations class so as to not expose I/O implementation details as public.
     final class Core {
         typealias Parent = OSCTCPClient
-        
+
         var channel: (any Channel)?
         let queue: DispatchQueue
         var receiveHandler: OSCHandlerBlock?
         var notificationHandler: Parent.NotificationHandlerBlock?
-        
+
         var timeTagMode: OSCTimeTagMode
         let remoteHost: String
         let remotePort: UInt16
@@ -26,8 +26,9 @@ extension OSCTCPClient {
         var isConnected: Bool {
             channel?.isActive ?? false
         }
+
         let framingMode: OSCTCPFramingMode
-        
+
         init(
             remoteHost: String,
             remotePort: UInt16,
@@ -46,7 +47,7 @@ extension OSCTCPClient {
             self.queue = queue
             self.receiveHandler = receiveHandler
         }
-        
+
         deinit {
             close()
         }
@@ -61,9 +62,9 @@ extension OSCTCPClient.Core {
     func connect(timeout: TimeInterval) throws {
         // negative values mean indefinite (no timeout) which is a bit dangerous
         let timeout = Int64(max(1.0, timeout))
-        
+
         let handler = ChannelHandler(oscServer: self)
-        
+
         // create the client bootstrap
         var bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .connectTimeout(.seconds(timeout))
@@ -80,7 +81,7 @@ extension OSCTCPClient.Core {
                     try channel.pipeline.syncOperations.addHandler(handler)
                 }
             }
-        
+
         // bind to interface, if specified
         if let interface {
             guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first else {
@@ -89,13 +90,13 @@ extension OSCTCPClient.Core {
             bootstrap = bootstrap
                 .bind(to: interface.address)
         }
-        
+
         // connect to host
         channel = try bootstrap
             .connect(host: remoteHost, port: Int(remotePort))
             .wait()
     }
-    
+
     func close() {
         // close the connection
         channel?.close(promise: nil)
@@ -112,7 +113,7 @@ extension OSCTCPClient.Core: _OSCTCPHandlerProtocol {
 
 extension OSCTCPClient.Core: _OSCTCPSendProtocol {
     // provides implementation for sending OSC data
-    
+
     func send(_ oscPacket: OSCPacket) throws {
         try _send(oscPacket)
     }
@@ -123,7 +124,7 @@ extension OSCTCPClient.Core: OSCTCPGeneratesClientNotificationsProtocol {
         let notif: Parent.Notification = .connected
         notificationHandler?(notif)
     }
-    
+
     func generateDisconnectedNotification(error: (any Error)?) {
         let notif: Parent.Notification = .disconnected(error: error)
         notificationHandler?(notif)

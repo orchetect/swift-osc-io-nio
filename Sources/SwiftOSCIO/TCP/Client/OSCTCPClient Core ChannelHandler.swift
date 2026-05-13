@@ -4,18 +4,18 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
+internal import SwiftOSCIOInternals
 import Foundation
 import NIO
-internal import SwiftOSCIOInternals
 
 extension OSCTCPClient.Core {
     /// Internal TCP receiver class so as to not expose  methods as public.
     final class ChannelHandler {
         weak var oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
-        
+
         /// Stores an error captured in `errorCaught` for use in `channelInactive`.
         private var pendingError: (any Error)?
-        
+
         init(oscServer: (any _OSCTCPHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
             self.oscServer = oscServer
         }
