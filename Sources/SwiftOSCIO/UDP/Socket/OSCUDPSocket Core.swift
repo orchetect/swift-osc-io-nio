@@ -78,7 +78,7 @@ extension OSCUDPSocket.Core {
 
         let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
         let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
-        var bootstrap = DatagramBootstrap(group: group)
+        let bootstrap = DatagramBootstrap(group: group)
             .channelOption(.socketOption(.so_broadcast), value: broadcast)
             .channelInitializer { channel in
                 channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))

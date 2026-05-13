@@ -68,7 +68,7 @@ extension OSCUDPServer.Core {
         let handler = OSCUDPChannelHandler(oscServer: self)
 
         let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
-        var bootstrap = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+        let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
             .channelInitializer { channel in
                 channel.pipeline.addHandler(handler)

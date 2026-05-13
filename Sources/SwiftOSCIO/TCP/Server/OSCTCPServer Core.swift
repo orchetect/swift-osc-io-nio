@@ -63,7 +63,7 @@ extension OSCTCPServer.Core {
     func start() throws {
         guard !isStarted else { return }
 
-        var bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+        let bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
             .childChannelInitializer { channel in
                 channel.eventLoop.makeCompletedFuture {
