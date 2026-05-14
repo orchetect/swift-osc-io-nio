@@ -9,7 +9,7 @@ let package = Package(
         .library(name: "SwiftOSCIO", targets: ["SwiftOSCIO"])
     ],
     dependencies: [
-        .package(url: "https://github.com/orchetect/swift-osc-core", branch: "receiver-refactor"), // from: "1.1.0"),
+        .package(url: "https://github.com/orchetect/swift-osc-core", from: "1.2.0"),
         .package(url: "https://github.com/apple/swift-nio", from: "2.87.0") // lowest version that supports Swift 6.0
     ],
     targets: [
