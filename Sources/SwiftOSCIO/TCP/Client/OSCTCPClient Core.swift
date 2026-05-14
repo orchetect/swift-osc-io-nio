@@ -132,13 +132,13 @@ extension OSCTCPClient.Core: OSCTCPGeneratesClientNotificationsProtocol {
 
 extension OSCTCPClient.Core {
     func setReceiveHandler(_ handler: OSCPacketHandler?) {
-        queue.async {
+        queue.sync {
             self.receiveHandler = handler
         }
     }
 
     func setNotificationHandler(_ handler: Parent.NotificationHandlerBlock?) {
-        queue.async {
+        queue.sync {
             self.notificationHandler = handler
         }
     }

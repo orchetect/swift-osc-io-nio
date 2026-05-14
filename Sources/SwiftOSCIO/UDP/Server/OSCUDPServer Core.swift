@@ -110,7 +110,7 @@ extension OSCUDPServer.Core: _OSCPacketDispatcherProtocol {
 
 extension OSCUDPServer.Core {
     func setReceiveHandler(_ handler: OSCPacketHandler?) {
-        queue.async {
+        queue.sync {
             self.receiveHandler = handler
         }
     }

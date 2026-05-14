@@ -144,7 +144,7 @@ extension OSCUDPSocket.Core {
 
 extension OSCUDPSocket.Core {
     func setReceiveHandler(_ handler: OSCPacketHandler?) {
-        queue.async {
+        queue.sync {
             self.receiveHandler = handler
         }
     }
