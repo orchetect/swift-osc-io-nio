@@ -9,9 +9,9 @@ import NIO
 import SwiftOSCCore
 
 final class OSCUDPChannelHandler {
-    weak var oscServer: (any _OSCHandlerProtocol)?
+    weak var oscServer: (any _OSCPacketDispatcherProtocol)?
 
-    init(oscServer: (any _OSCHandlerProtocol)? = nil) {
+    init(oscServer: (any _OSCPacketDispatcherProtocol)? = nil) {
         self.oscServer = oscServer
     }
 }
@@ -42,14 +42,14 @@ extension OSCUDPChannelHandler: ChannelInboundHandler {
 extension OSCUDPChannelHandler {
     /// Stub required to take `oscServer` as sending.
     private func _handle(
-        oscServer: any _OSCHandlerProtocol,
+        oscServer: any _OSCPacketDispatcherProtocol,
         data: Data,
         remoteHost: String,
         remotePort: UInt16
     ) {
         do {
             guard let packet = try OSCPacket(from: data) else { return }
-            oscServer.handle(packet: packet, remoteHost: remoteHost, remotePort: remotePort)
+            oscServer.dispatch(packet: packet, remoteHost: remoteHost, remotePort: remotePort)
         } catch {
             #if DEBUG
             print("OSC parse error: \(error.localizedDescription)")

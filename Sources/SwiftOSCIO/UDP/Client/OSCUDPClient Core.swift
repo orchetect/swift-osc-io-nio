@@ -94,7 +94,7 @@ extension OSCUDPClient.Core {
         let port = Int(_localPort ?? 0)
 
         // Channel Setup
-        var bootstrap = try DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+        let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
             // configure port reuse
             .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
             // configure ipv4 broadcast
