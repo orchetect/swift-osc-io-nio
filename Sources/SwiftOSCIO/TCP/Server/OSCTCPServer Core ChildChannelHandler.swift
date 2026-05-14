@@ -46,7 +46,7 @@ extension OSCTCPServer.Core.ChildChannelHandler: ChannelInboundHandler {
         let port = UInt16(context.channel.remoteAddress?.port ?? 0)
         let host = context.channel.remoteAddress?.ipAddress ?? ""
 
-        server.handle(receivedData: data, remoteHost: host, remotePort: port)
+        server.dispatch(receivedTCPFramedData: data, remoteHost: host, remotePort: port)
     }
 
     func channelInactive(context: ChannelHandlerContext) {

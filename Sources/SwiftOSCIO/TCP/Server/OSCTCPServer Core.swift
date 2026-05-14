@@ -135,7 +135,7 @@ extension OSCTCPServer.Core {
     }
 }
 
-extension OSCTCPServer.Core: _OSCTCPPacketHandlerProtocol {
+extension OSCTCPServer.Core: _OSCTCPPacketDispatcherProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 

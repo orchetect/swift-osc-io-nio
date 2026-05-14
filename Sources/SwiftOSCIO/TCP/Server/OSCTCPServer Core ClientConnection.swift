@@ -12,14 +12,14 @@ extension OSCTCPServer.Core {
     /// Internal class encapsulating a remote client connection session accepted by a local ``OSCTCPServer``.
     final class ClientConnection {
         let channel: (any Channel)?
-        let oscServer: (any _OSCTCPPacketHandlerProtocol & OSCTCPGeneratesServerNotificationsProtocol)?
+        let oscServer: (any _OSCTCPPacketDispatcherProtocol & OSCTCPGeneratesServerNotificationsProtocol)?
         let clientID: OSCTCPClientSessionID
         let remoteHost: String // cached, since Channel resets it upon disconnection
         let remotePort: UInt16 // cached, since Channel resets it upon disconnection
         let framingMode: OSCTCPFramingMode
 
         init(
-            server: any _OSCTCPPacketHandlerProtocol & OSCTCPGeneratesServerNotificationsProtocol,
+            server: any _OSCTCPPacketDispatcherProtocol & OSCTCPGeneratesServerNotificationsProtocol,
             channel: any Channel,
             clientID: OSCTCPClientSessionID,
             framingMode: OSCTCPFramingMode
@@ -56,7 +56,7 @@ extension OSCTCPServer.Core.ClientConnection: _OSCTCPSendProtocol {
     }
 }
 
-extension OSCTCPServer.Core.ClientConnection: _OSCTCPPacketHandlerProtocol {
+extension OSCTCPServer.Core.ClientConnection: _OSCTCPPacketDispatcherProtocol {
     var queue: DispatchQueue {
         oscServer?.queue ?? .global()
     }

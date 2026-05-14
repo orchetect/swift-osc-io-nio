@@ -105,7 +105,7 @@ extension OSCTCPClient.Core {
 
 // MARK: - Communication
 
-extension OSCTCPClient.Core: _OSCTCPPacketHandlerProtocol {
+extension OSCTCPClient.Core: _OSCTCPPacketDispatcherProtocol {
     // provides implementation for dispatching incoming OSC data
 }
 
