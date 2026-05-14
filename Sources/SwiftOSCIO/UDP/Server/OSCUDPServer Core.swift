@@ -44,7 +44,7 @@ extension OSCUDPServer {
             _localPort = (port == nil || port == 0) ? nil : port
             self.interface = interface
             self.isPortReuseEnabled = isPortReuseEnabled
-            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPServer.queue")
+            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPServer.queue", target: .global())
             self.queue = queue
             self.receiveHandler = receiveHandler
         }

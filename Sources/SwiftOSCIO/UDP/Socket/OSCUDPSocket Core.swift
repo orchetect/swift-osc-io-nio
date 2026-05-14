@@ -57,7 +57,7 @@ extension OSCUDPSocket {
             _remotePort = (remotePort == nil || remotePort == 0) ? nil : remotePort
             self.interface = interface
             self.isIPv4BroadcastEnabled = isIPv4BroadcastEnabled
-            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPSocket.queue")
+            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPSocket.queue", target: .global())
             self.queue = queue
             self.receiveHandler = receiveHandler
         }

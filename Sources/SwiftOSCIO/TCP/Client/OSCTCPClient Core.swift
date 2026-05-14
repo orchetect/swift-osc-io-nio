@@ -40,7 +40,7 @@ extension OSCTCPClient {
             self.remotePort = remotePort
             self.interface = interface
             self.framingMode = framingMode
-            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPClient.queue")
+            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPClient.queue", target: .global())
             self.queue = queue
             self.receiveHandler = receiveHandler
         }

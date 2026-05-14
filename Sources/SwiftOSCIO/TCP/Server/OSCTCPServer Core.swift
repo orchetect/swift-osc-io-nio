@@ -44,7 +44,7 @@ extension OSCTCPServer {
             _localPort = (port == nil || port == 0) ? nil : port
             self.interface = interface
             self.framingMode = framingMode
-            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPServer.queue")
+            let queue = queue ?? DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPServer.queue", target: .global())
             self.queue = queue
             self.receiveHandler = receiveHandler
         }
