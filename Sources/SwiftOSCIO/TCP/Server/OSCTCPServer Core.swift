@@ -18,6 +18,7 @@ extension OSCTCPServer {
         private var _clients: [OSCTCPClientSessionID: ClientConnection] = [:]
         let queue: DispatchQueue
         var receiveHandler: OSCPacketHandler?
+        var receiveErrorHandler: OSCDecodeErrorHandlerBlock?
         var notificationHandler: NotificationHandlerBlock?
 
         var localPort: UInt16 {
@@ -161,6 +162,12 @@ extension OSCTCPServer.Core {
     func setReceiveHandler(_ handler: OSCPacketHandler?) {
         queue.sync {
             self.receiveHandler = handler
+        }
+    }
+
+    func setReceiveErrorHandler(_ handler: OSCDecodeErrorHandlerBlock?) {
+        queue.sync {
+            self.receiveErrorHandler = handler
         }
     }
 

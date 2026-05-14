@@ -59,6 +59,10 @@ public final class OSCUDPServer: OSCUDPServerProtocol {
     public func setReceiveHandler(_ handler: OSCPacketHandler?) {
         core.setReceiveHandler(handler)
     }
+
+    public func setReceiveErrorHandler(_ handler: OSCDecodeErrorHandlerBlock?) {
+        core.setReceiveErrorHandler(handler)
+    }
 }
 
 extension OSCUDPServer: Sendable { }

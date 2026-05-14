@@ -64,6 +64,10 @@ extension OSCTCPServer.Core.ClientConnection: _OSCTCPPacketHandlerProtocol {
     var receiveHandler: OSCPacketHandler? {
         oscServer?.receiveHandler
     }
+    
+    var receiveErrorHandler: OSCDecodeErrorHandlerBlock? {
+        oscServer?.receiveErrorHandler
+    }
 }
 
 extension OSCTCPServer.Core.ClientConnection: OSCTCPGeneratesClientNotificationsProtocol {

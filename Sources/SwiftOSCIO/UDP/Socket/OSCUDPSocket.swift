@@ -78,6 +78,10 @@ public final class OSCUDPSocket: OSCUDPSocketProtocol {
     public func setReceiveHandler(_ handler: OSCPacketHandler?) {
         core.setReceiveHandler(handler)
     }
+
+    public func setReceiveErrorHandler(_ handler: OSCDecodeErrorHandlerBlock?) {
+        core.setReceiveErrorHandler(handler)
+    }
 }
 
 extension OSCUDPSocket: Sendable { }
