@@ -16,6 +16,7 @@ extension OSCUDPServer {
         private var channel: (any Channel)?
         let queue: DispatchQueue
         var receiveHandler: OSCPacketHandler?
+        var receiveErrorHandler: OSCDecodeErrorHandlerBlock?
 
         var localPort: UInt16 {
             if let port = channel?.localAddress?.port {
@@ -112,6 +113,12 @@ extension OSCUDPServer.Core {
     func setReceiveHandler(_ handler: OSCPacketHandler?) {
         queue.sync {
             self.receiveHandler = handler
+        }
+    }
+
+    func setReceiveErrorHandler(_ handler: OSCDecodeErrorHandlerBlock?) {
+        queue.sync {
+            self.receiveErrorHandler = handler
         }
     }
 }

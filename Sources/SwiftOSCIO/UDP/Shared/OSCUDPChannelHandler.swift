@@ -47,14 +47,7 @@ extension OSCUDPChannelHandler {
         remoteHost: String,
         remotePort: UInt16
     ) {
-        do {
-            guard let packet = try OSCPacket(from: data) else { return }
-            oscServer.dispatch(packet: packet, remoteHost: remoteHost, remotePort: remotePort)
-        } catch {
-            #if DEBUG
-            print("OSC parse error: \(error.localizedDescription)")
-            #endif
-        }
+        oscServer.dispatch(receivedPacket: data, remoteHost: remoteHost, remotePort: remotePort)
     }
 }
 

@@ -11,12 +11,12 @@ import NIO
 extension OSCTCPClient.Core {
     /// Internal TCP receiver class so as to not expose  methods as public.
     final class ChannelHandler {
-        weak var oscServer: (any _OSCTCPPacketHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
+        weak var oscServer: (any _OSCTCPPacketDispatcherProtocol & OSCTCPGeneratesClientNotificationsProtocol)?
 
         /// Stores an error captured in `errorCaught` for use in `channelInactive`.
         private var pendingError: (any Error)?
 
-        init(oscServer: (any _OSCTCPPacketHandlerProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
+        init(oscServer: (any _OSCTCPPacketDispatcherProtocol & OSCTCPGeneratesClientNotificationsProtocol)? = nil) {
             self.oscServer = oscServer
         }
     }
@@ -48,7 +48,7 @@ extension OSCTCPClient.Core.ChannelHandler: ChannelInboundHandler {
         let remoteHost = remoteAddress?.ipAddress ?? ""
         let remotePort = UInt16(remoteAddress?.port ?? 0)
 
-        oscServer.handle(receivedData: data, remoteHost: remoteHost, remotePort: remotePort)
+        oscServer.dispatch(receivedTCPFramedData: data, remoteHost: remoteHost, remotePort: remotePort)
     }
 
     func channelInactive(context: ChannelHandlerContext) {

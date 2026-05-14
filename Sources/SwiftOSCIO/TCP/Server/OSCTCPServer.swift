@@ -71,20 +71,24 @@ public final class OSCTCPServer: OSCTCPServerProtocol {
         core.framingMode
     }
 
-    public func setReceiveHandler(_ handler: OSCPacketHandler?) {
-        core.setReceiveHandler(handler)
-    }
-
-    public func setNotificationHandler(_ handler: NotificationHandlerBlock?) {
-        core.setNotificationHandler(handler)
-    }
-
     public var clients: [OSCTCPClientSessionID: (host: String, port: UInt16)] {
         core.clients
     }
 
     public func disconnectClient(clientID: OSCTCPClientSessionID) {
         core.disconnectClient(clientID: clientID)
+    }
+
+    public func setReceiveHandler(_ handler: OSCPacketHandler?) {
+        core.setReceiveHandler(handler)
+    }
+
+    public func setReceiveErrorHandler(_ handler: OSCDecodeErrorHandlerBlock?) {
+        core.setReceiveErrorHandler(handler)
+    }
+
+    public func setNotificationHandler(_ handler: NotificationHandlerBlock?) {
+        core.setNotificationHandler(handler)
     }
 }
 
