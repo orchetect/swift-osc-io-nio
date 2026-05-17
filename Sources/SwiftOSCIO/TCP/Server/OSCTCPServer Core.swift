@@ -116,7 +116,7 @@ extension OSCTCPServer.Core {
         toClientIDs clientIDs: [OSCTCPClientSessionID]?,
         errorHandler: ((_ clientID: OSCTCPClientSessionID, _ error: any Error) -> Void)?
     ) {
-        let clientIDs = clientIDs ?? Array(_clients.keys)
+        let clientIDs = clientIDs ?? queue.sync { Array(_clients.keys) }
         for clientID in clientIDs {
             do {
                 try send(packet, toClientID: clientID)
@@ -178,13 +178,15 @@ extension OSCTCPServer.Core {
     }
 
     var clients: [OSCTCPClientSessionID: (host: String, port: UInt16)] {
-        _clients
-            .reduce(into: [:] as [OSCTCPClientSessionID: (host: String, port: UInt16)]) { base, element in
-                base[element.key] = (
-                    host: element.value.remoteHost,
-                    port: element.value.remotePort
-                )
-            }
+        queue.sync {
+            _clients
+                .reduce(into: [:] as [OSCTCPClientSessionID: (host: String, port: UInt16)]) { base, element in
+                    base[element.key] = (
+                        host: element.value.remoteHost,
+                        port: element.value.remotePort
+                    )
+                }
+        }
     }
 
     func disconnectClient(clientID: OSCTCPClientSessionID) {
@@ -197,7 +199,8 @@ extension OSCTCPServer.Core {
 extension OSCTCPServer.Core {
     /// Close connections for any connected clients and remove them from the list of connected clients.
     func closeClients() {
-        for clientID in _clients.keys {
+        let clientIDs = _clients.keys // take local copy before mutating collection
+        for clientID in clientIDs {
             closeClient(clientID: clientID)
         }
     }
@@ -205,17 +208,22 @@ extension OSCTCPServer.Core {
     func addClient(channel: any Channel) -> OSCTCPClientSessionID {
         let clientID = newClientID()
         let connection = ClientConnection(server: self, channel: channel, clientID: clientID, framingMode: framingMode)
-        _clients[clientID] = connection
+        queue.sync {
+            _clients[clientID] = connection
+        }
 
         return clientID
     }
 
     /// Generate a new client ID that is not currently in use by any connected client(s).
     private func newClientID() -> OSCTCPClientSessionID {
-        var clientID = 0
-        while clientID == 0 || _clients.keys.contains(clientID) {
-            // don't allow 0 or negative numbers
-            clientID = Int.random(in: 1 ... Int.max)
+        let clientID = queue.sync {
+            var clientID = 0
+            while clientID == 0 || _clients.keys.contains(clientID) {
+                // don't allow 0 or negative numbers
+                clientID = Int.random(in: 1 ... Int.max)
+            }
+            return clientID
         }
         assert(clientID > 0)
         return clientID
@@ -223,7 +231,9 @@ extension OSCTCPServer.Core {
 
     /// Close a connection and remove it from the list of connected clients.
     func closeClient(clientID: Int) {
-        _clients[clientID]?.close()
-        _clients[clientID] = nil
+        queue.sync {
+            _clients[clientID]?.close()
+            _clients[clientID] = nil
+        }
     }
 }
