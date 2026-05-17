@@ -63,37 +63,32 @@ extension OSCUDPServer.Core: @unchecked Sendable { } // TODO: unchecked
 extension OSCUDPServer.Core {
     func start() throws {
         guard !isStarted else { return }
-
+        
         stop()
+        
+        try queue.sync {
+            let handler = OSCUDPChannelHandler(oscServer: self)
 
-        let handler = OSCUDPChannelHandler(oscServer: self)
+            let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
+            let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+                .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
+                .channelInitializer { channel in
+                    channel.pipeline.addHandler(handler)
+                }
 
-        let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
-        let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-            .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
-            .channelInitializer { channel in
-                channel.pipeline.addHandler(handler)
+            // bind to interface, if specified
+            let host: String = if let interface {
+                try resolveNetworkDeviceAddress(nameOrAddress: interface)
+            } else {
+                "localhost"
             }
 
-        // bind to interface, if specified
-        let host: String
-        if let interface {
-            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet, .inet6, .local]).first,
-                  let address = interface.address.ipAddress
-            else {
-                throw OSCIOError.invalidInterface
-            }
-            host = address
-        } else {
-            host = "localhost"
+            let port = Int(_localPort ?? localPort)
+
+            channel = try bootstrap
+                .bind(host: host, port: port)
+                .wait()
         }
-
-        let port = Int(_localPort ?? localPort)
-
-        let finalChannel = try bootstrap
-            .bind(host: host, port: port)
-            .wait()
-        queue.sync { channel = finalChannel }
     }
 
     func stop() {

@@ -21,7 +21,8 @@ public final class OSCUDPClient: OSCUDPClientProtocol {
             localPort: localPort,
             interface: interface,
             isPortReuseEnabled: isPortReuseEnabled,
-            isIPv4BroadcastEnabled: isIPv4BroadcastEnabled
+            isIPv4BroadcastEnabled: isIPv4BroadcastEnabled,
+            queue: nil
         )
     }
 

@@ -75,39 +75,41 @@ extension OSCUDPSocket.Core: @unchecked Sendable { }
 
 extension OSCUDPSocket.Core {
     func start() throws {
-        guard !isStarted else { return }
-
-        let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-        let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
-        let bootstrap = DatagramBootstrap(group: group)
-            .channelOption(.socketOption(.so_broadcast), value: broadcast)
-            .channelInitializer { channel in
-                channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
+        try queue.sync {
+            guard !isStarted else { return }
+            
+            let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+            let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
+            let bootstrap = DatagramBootstrap(group: group)
+                .channelOption(.socketOption(.so_broadcast), value: broadcast)
+                .channelInitializer { channel in
+                    channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
+                }
+            
+            // bind to interface, if specified
+            let host: String = if let interface {
+                if let remoteHost {
+                    try resolveNetworkDeviceAddress(nameOrAddress: interface, forRemoteHost: remoteHost)
+                } else {
+                    try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                }
+            } else {
+                "localhost"
             }
-
-        // bind to interface, if specified
-        let host: String
-        if let interface {
-            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet, .inet6, .local]).first,
-                  let address = interface.address.ipAddress
-            else {
-                throw OSCIOError.invalidInterface
-            }
-            host = address
-        } else {
-            host = "localhost"
+            
+            let port = Int(_localPort ?? localPort)
+            
+            channel = try bootstrap
+                .bind(host: host, port: port)
+                .wait()
         }
-
-        let port = Int(_localPort ?? localPort)
-
-        channel = try bootstrap
-            .bind(host: host, port: port)
-            .wait()
     }
 
     func stop() {
-        try? channel?.close().wait()
-        channel = nil
+        queue.sync {
+            try? channel?.close().wait()
+            channel = nil
+        }
     }
 }
 
@@ -119,25 +121,27 @@ extension OSCUDPSocket.Core: _OSCPacketDispatcherProtocol {
 
 extension OSCUDPSocket.Core {
     func send(_ packet: OSCPacket, to host: String?, port: UInt16?) throws {
-        guard let channel, isStarted else {
-            throw OSCIOError.notStarted
+        try queue.sync {
+            guard let channel, isStarted else {
+                throw OSCIOError.notStarted
+            }
+            
+            guard let toHost = host ?? remoteHost else {
+                throw OSCIOError.noRemoteHost
+            }
+            
+            let data = try packet.rawData()
+            
+            let port = Int(port ?? remotePort)
+            
+            let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
+            
+            let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
+            
+            let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
+            
+            try channel.writeAndFlush(envelope).wait()
         }
-
-        guard let toHost = host ?? remoteHost else {
-            throw OSCIOError.noRemoteHost
-        }
-
-        let data = try packet.rawData()
-
-        let port = Int(port ?? remotePort)
-
-        let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
-
-        let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
-
-        let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
-
-        try channel.writeAndFlush(envelope).wait()
     }
 }
 

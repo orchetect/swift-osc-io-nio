@@ -58,48 +58,53 @@ extension OSCTCPClient.Core: @unchecked Sendable { } // TODO: unchecked
 
 extension OSCTCPClient.Core {
     func connect(timeout: TimeInterval) throws {
-        // negative values mean indefinite (no timeout) which is a bit dangerous
-        let timeout = Int64(max(1.0, timeout))
+        try queue.sync {
+            // negative values mean indefinite (no timeout) which is a bit dangerous
+            let timeout = Int64(max(1.0, timeout))
 
-        let handler = ChannelHandler(oscServer: self)
+            let handler = ChannelHandler(oscServer: self)
 
-        // create the client bootstrap
-        var bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-            .connectTimeout(.seconds(timeout))
-            .channelInitializer { channel in
-                channel.eventLoop.makeCompletedFuture {
-                    // chose which decoder to use
-                    switch self.framingMode {
-                    case .osc1_0: // Length Header
-                        try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPLengthHeaderFrameDecoder()))
-                    case .osc1_1: // SLIP
-                        try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPSLIPFrameDecoder()))
+            // create the client bootstrap
+            var bootstrap = ClientBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+                .connectTimeout(.seconds(timeout))
+                .channelInitializer { channel in
+                    channel.eventLoop.makeCompletedFuture {
+                        // chose which decoder to use
+                        switch self.framingMode {
+                        case .osc1_0: // Length Header
+                            try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPLengthHeaderFrameDecoder()))
+                        case .osc1_1: // SLIP
+                            try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPSLIPFrameDecoder()))
+                        }
+                        // add client handler
+                        try channel.pipeline.syncOperations.addHandler(handler)
                     }
-                    // add client handler
-                    try channel.pipeline.syncOperations.addHandler(handler)
                 }
+
+            let remoteAddress = try SocketAddress.makeAddressResolvingHost(remoteHost, port: Int(remotePort))
+
+            // bind to interface, if specified
+            if let interface {
+                let interfaceAddress = try resolveNetworkDevice(nameOrAddress: interface, forRemoteAddress: remoteAddress)
+
+                bootstrap = bootstrap
+                    .bind(to: interfaceAddress)
             }
 
-        // bind to interface, if specified
-        if let interface {
-            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet, .inet6, .local]).first else {
-                throw OSCIOError.invalidInterface
-            }
-            bootstrap = bootstrap
-                .bind(to: interface.address)
+            // connect to host
+            channel = try bootstrap
+                .connect(to: remoteAddress)
+                .wait()
         }
-
-        // connect to host
-        channel = try bootstrap
-            .connect(host: remoteHost, port: Int(remotePort))
-            .wait()
     }
 
     func close() {
-        // close the connection
-        channel?.close(promise: nil)
-        // deallocate channel
-        channel = nil
+        queue.sync {
+            // close the connection
+            channel?.close(promise: nil)
+            // deallocate channel
+            channel = nil
+        }
     }
 }
 

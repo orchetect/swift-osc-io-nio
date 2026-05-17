@@ -62,52 +62,50 @@ extension OSCTCPServer.Core: @unchecked Sendable { } // TODO: unchecked
 
 extension OSCTCPServer.Core {
     func start() throws {
-        guard !isStarted else { return }
-
-        let bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-            .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
-            .childChannelInitializer { channel in
-                channel.eventLoop.makeCompletedFuture {
-                    switch self.framingMode {
-                    case .osc1_0:
-                        try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPLengthHeaderFrameDecoder()))
-                    case .osc1_1:
-                        try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPSLIPFrameDecoder()))
+        try queue.sync {
+            guard !isStarted else { return }
+            
+            let bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+                .serverChannelOption(.socketOption(.so_reuseaddr), value: 1)
+                .childChannelInitializer { channel in
+                    channel.eventLoop.makeCompletedFuture {
+                        switch self.framingMode {
+                        case .osc1_0:
+                            try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPLengthHeaderFrameDecoder()))
+                        case .osc1_1:
+                            try channel.pipeline.syncOperations.addHandler(ByteToMessageHandler(OSCTCPSLIPFrameDecoder()))
+                        }
+                        try channel.pipeline.syncOperations.addHandler(ChildChannelHandler(server: self))
                     }
-                    try channel.pipeline.syncOperations.addHandler(ChildChannelHandler(server: self))
                 }
+
+            // bind to interface, if specified
+            let host: String = if let interface {
+                try resolveNetworkDeviceAddress(nameOrAddress: interface)
+            } else {
+                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6) for TCP.
+                // Binding to "0.0.0.0" (IPv4) is not enough to make the server connectable through all paths.
+                // We need to bind to "::" (IPv6) which makes the server connectable via both IPv4 and IPv6.
+                "::"
             }
 
-        // bind to interface, if specified
-        let host: String
-        if let interface {
-            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet, .inet6, .local]).first,
-                  let address = interface.address.ipAddress
-            else {
-                throw OSCIOError.invalidInterface
-            }
-            host = address
-        } else {
-            // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6) for TCP.
-            // Binding to "0.0.0.0" (IPv4) is not enough to make the server connectable through all paths.
-            // We need to bind to "::" (IPv6) which makes the server connectable via IPv4 or IPv6.
-            host = "::"
+            let port = Int(_localPort ?? localPort)
+
+            channel = try bootstrap
+                .bind(host: host, port: port)
+                .wait()
         }
-
-        let port = Int(_localPort ?? localPort)
-
-        channel = try bootstrap
-            .bind(host: host, port: port)
-            .wait()
     }
 
     func stop() {
         // disconnect all clients
         closeClients()
 
-        // close server
-        channel?.close(promise: nil)
-        channel = nil
+        queue.sync {
+            // close server
+            channel?.close(promise: nil)
+            channel = nil
+        }
     }
 }
 
@@ -202,7 +200,7 @@ extension OSCTCPServer.Core {
 extension OSCTCPServer.Core {
     /// Close connections for any connected clients and remove them from the list of connected clients.
     func closeClients() {
-        let clientIDs = _clients.keys // take local copy before mutating collection
+        let clientIDs = queue.sync { _clients.keys } // take local copy before mutating collection
         for clientID in clientIDs {
             closeClient(clientID: clientID)
         }
