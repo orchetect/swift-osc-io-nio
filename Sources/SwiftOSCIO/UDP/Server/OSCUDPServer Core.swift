@@ -62,13 +62,13 @@ extension OSCUDPServer.Core: @unchecked Sendable { } // TODO: unchecked
 
 extension OSCUDPServer.Core {
     func start() throws {
-        guard !isStarted else { return }
-        
-        stop()
-        
         try queue.sync {
+            guard !isStarted else { return }
+            
+            _stop()
+            
             let handler = OSCUDPChannelHandler(oscServer: self)
-
+            
             let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
             let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
                 .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
@@ -78,24 +78,34 @@ extension OSCUDPServer.Core {
 
             // bind to interface, if specified
             let host: String = if let interface {
-                try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                switch interface {
+                case "0.0.0.0", "::": interface // pass thru wildcard
+                default: try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                }
             } else {
-                "localhost"
+                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
+                "0.0.0.0" // default to IPv4
             }
 
             let port = Int(_localPort ?? localPort)
 
-            channel = try bootstrap
+            let configuredChannel = try bootstrap
                 .bind(host: host, port: port)
+        
+            channel = try configuredChannel
                 .wait()
         }
     }
 
     func stop() {
         queue.sync {
-            channel?.close(promise: nil)
-            channel = nil
+            _stop()
         }
+    }
+    
+    private func _stop() {
+        channel?.close(promise: nil)
+        channel = nil
     }
 }
 

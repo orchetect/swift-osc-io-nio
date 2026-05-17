@@ -88,20 +88,38 @@ extension OSCUDPSocket.Core {
             
             // bind to interface, if specified
             let host: String = if let interface {
-                if let remoteHost {
-                    try resolveNetworkDeviceAddress(nameOrAddress: interface, forRemoteHost: remoteHost)
-                } else {
-                    try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                switch interface {
+                case "0.0.0.0", "::":
+                    interface // pass thru wildcard
+                default:
+                    if let remoteHost {
+                        try resolveNetworkDeviceAddress(nameOrAddress: interface, forRemoteHost: remoteHost)
+                    } else {
+                        try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                    }
                 }
             } else {
-                "localhost"
+                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
+                if let remoteHost {
+                    switch try SocketAddress.makeAddressResolvingHost(remoteHost, port: 1).protocol { // port number doesn't matter here
+                    case .inet: "0.0.0.0"
+                    case .inet6: "::"
+                    default: "0.0.0.0" // default to IPv4
+                    }
+                } else {
+                    "0.0.0.0" // default to IPv4
+                }
             }
             
             let port = Int(_localPort ?? localPort)
             
-            channel = try bootstrap
+            let configuredChannel = try bootstrap
                 .bind(host: host, port: port)
+            
+            let waitingChannel = try configuredChannel
                 .wait()
+            
+            channel = waitingChannel
         }
     }
 
@@ -122,7 +140,11 @@ extension OSCUDPSocket.Core: _OSCPacketDispatcherProtocol {
 extension OSCUDPSocket.Core {
     func send(_ packet: OSCPacket, to host: String?, port: UInt16?) throws {
         try queue.sync {
-            guard let channel, isStarted else {
+            guard isStarted else {
+                throw OSCIOError.notStarted
+            }
+            
+            guard let channel else {
                 throw OSCIOError.notStarted
             }
             

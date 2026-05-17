@@ -85,16 +85,23 @@ extension OSCTCPClient.Core {
 
             // bind to interface, if specified
             if let interface {
-                let interfaceAddress = try resolveNetworkDevice(nameOrAddress: interface, forRemoteAddress: remoteAddress)
+                let interfaceAddress = switch interface {
+                case "0.0.0.0", "::": // pass thru wildcard
+                    try SocketAddress.makeAddressResolvingHost(interface, port: 0)
+                default:
+                    try resolveNetworkDevice(nameOrAddress: interface, forRemoteAddress: remoteAddress)
+                }
 
                 bootstrap = bootstrap
                     .bind(to: interfaceAddress)
             }
 
             // connect to host
-            channel = try bootstrap
+            let configuredChannel = try bootstrap
                 .connect(to: remoteAddress)
                 .wait()
+            
+            channel = configuredChannel
         }
     }
 

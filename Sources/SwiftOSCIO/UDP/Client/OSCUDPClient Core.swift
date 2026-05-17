@@ -48,7 +48,7 @@ extension OSCUDPClient {
         var isStarted: Bool {
             channel?.isActive ?? false
         }
-
+        
         init(
             localPort: UInt16?,
             interface: String?,
@@ -75,44 +75,65 @@ extension OSCUDPClient.Core: @unchecked Sendable { } // TODO: unchecked
 
 extension OSCUDPClient.Core {
     func start() throws {
+        try queue.sync {
+            try _start()
+        }
+    }
+    
+    private func _start(remoteHost: String? = nil) throws {
         guard !isStarted else { return }
         
-        stop()
+        _stop()
         
-        try queue.sync {
-            let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
-            let broadcast: ChannelOptions.Types.SocketOption.Value = _isIPv4BroadcastEnabled ? 1 : 0
-            
-            // bind to interface, if specified
-            let host: String = if let interface {
-                try resolveNetworkDeviceAddress(nameOrAddress: interface)
-            } else {
-                "localhost"
+        let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
+        let broadcast: ChannelOptions.Types.SocketOption.Value = _isIPv4BroadcastEnabled ? 1 : 0
+        
+        // bind to interface, if specified
+        let host: String = if let interface {
+            switch interface {
+            case "0.0.0.0", "::": interface // pass thru wildcard
+            default: try resolveNetworkDeviceAddress(nameOrAddress: interface)
             }
-            
-            let port = Int(_localPort ?? 0)
-            
-            // Channel Setup
-            let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-                // configure port reuse
-                .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
-                // configure ipv4 broadcast
-                .channelOption(.socketOption(.so_broadcast), value: broadcast)
-            
-            channel = try bootstrap
-                // bind to host and port
-                .bind(host: host, port: port)
-                // wait for resolution of the `EventLoopFuture`
-                .wait()
+        } else {
+            // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
+            if let remoteHost {
+                switch try SocketAddress.makeAddressResolvingHost(remoteHost, port: 1).protocol { // port number doesn't matter here
+                case .inet: "0.0.0.0"
+                case .inet6: "::"
+                default: "0.0.0.0" // default to IPv4
+                }
+            } else {
+                "0.0.0.0" // default to IPv4
+            }
         }
+        
+        let port = Int(_localPort ?? 0)
+        
+        // Channel Setup
+        let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+            // configure port reuse
+            .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
+            // configure ipv4 broadcast
+            .channelOption(.socketOption(.so_broadcast), value: broadcast)
+        
+        let configuredChannel = try bootstrap
+            // bind to host and port
+            .bind(host: host, port: port)
+        
+        channel = try configuredChannel
+            .wait()
     }
 
     func stop() {
         queue.sync {
-            // close channel -> opportunity for completion handler
-            channel?.close(promise: nil)
-            channel = nil
+            _stop()
         }
+    }
+    
+    private func _stop() {
+        // close channel -> opportunity for completion handler
+        channel?.close(promise: nil)
+        channel = nil
     }
 }
 
@@ -120,20 +141,20 @@ extension OSCUDPClient.Core {
 
 extension OSCUDPClient.Core {
     func send(_ packet: OSCPacket, to host: String, port: UInt16) throws {
-        let data = try packet.rawData()
-
-        if !isStarted {
-            try start()
-        }
-
         try queue.sync {
+            if !isStarted {
+                try _start(remoteHost: host)
+            }
+
             guard let channel else {
                 throw OSCIOError.notStarted
             }
             
             // resolve host and port to `SocketAddress`
             let remoteAddress = try SocketAddress.makeAddressResolvingHost(host, port: Int(port))
+            
             // create buffer from data
+            let data = try packet.rawData()
             let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
             
             let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)

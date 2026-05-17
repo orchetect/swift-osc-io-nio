@@ -81,7 +81,10 @@ extension OSCTCPServer.Core {
 
             // bind to interface, if specified
             let host: String = if let interface {
-                try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                switch interface {
+                case "0.0.0.0", "::": interface // pass thru wildcard
+                default: try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                }
             } else {
                 // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6) for TCP.
                 // Binding to "0.0.0.0" (IPv4) is not enough to make the server connectable through all paths.
@@ -91,8 +94,10 @@ extension OSCTCPServer.Core {
 
             let port = Int(_localPort ?? localPort)
 
-            channel = try bootstrap
+            let configuredChannel = try bootstrap
                 .bind(host: host, port: port)
+            
+            channel = try configuredChannel
                 .wait()
         }
     }
