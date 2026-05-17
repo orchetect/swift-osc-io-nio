@@ -90,14 +90,17 @@ extension OSCUDPServer.Core {
 
         let port = Int(_localPort ?? localPort)
 
-        channel = try bootstrap
+        let finalChannel = try bootstrap
             .bind(host: host, port: port)
             .wait()
+        queue.sync { channel = finalChannel }
     }
 
     func stop() {
-        channel?.close(promise: nil)
-        channel = nil
+        queue.sync {
+            channel?.close(promise: nil)
+            channel = nil
+        }
     }
 }
 
