@@ -78,7 +78,7 @@ extension OSCUDPServer.Core {
         // bind to interface, if specified
         let host: String
         if let interface {
-            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet]).first,
+            guard let interface = try networkDevices(matchingNameOrAddress: interface, protocols: [.inet, .inet6, .local]).first,
                   let address = interface.address.ipAddress
             else {
                 throw OSCIOError.invalidInterface
