@@ -88,7 +88,7 @@ extension OSCUDPClient.Core {
             }
             host = address
         } else {
-            host = "0.0.0.0"
+            host = "localhost"
         }
 
         let port = Int(_localPort ?? 0)
