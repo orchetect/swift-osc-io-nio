@@ -40,6 +40,8 @@ extension OSCUDPSocket {
 
         let isIPv4BroadcastEnabled: Bool
 
+        var isIPv6Enabled: Bool = false
+
         var isStarted: Bool {
             channel?.isActive ?? false
         }
@@ -93,21 +95,21 @@ extension OSCUDPSocket.Core {
                     interface // pass thru wildcard
                 default:
                     if let remoteHost {
-                        try resolveNetworkDeviceAddress(nameOrAddress: interface, forRemoteHost: remoteHost)
+                        try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, forRemoteHost: remoteHost)
                     } else {
-                        try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                        try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
                     }
                 }
             } else {
                 // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
-                if let remoteHost {
+                if let remoteHost, isIPv6Enabled {
                     switch try SocketAddress.makeAddressResolvingHost(remoteHost, port: 1).protocol { // port number doesn't matter here
                     case .inet: "0.0.0.0"
                     case .inet6: "::"
-                    default: "0.0.0.0" // default to IPv4
+                    default: isIPv6Enabled ? "::" : "0.0.0.0"
                     }
                 } else {
-                    "0.0.0.0" // default to IPv4
+                    isIPv6Enabled ? "::" : "0.0.0.0"
                 }
             }
             

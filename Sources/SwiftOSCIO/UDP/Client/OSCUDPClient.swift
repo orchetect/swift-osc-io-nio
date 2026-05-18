@@ -62,6 +62,11 @@ public final class OSCUDPClient: OSCUDPClientProtocol {
         set { core.isIPv4BroadcastEnabled = newValue }
     }
 
+    public var isIPv6Enabled: Bool {
+        get { core.isIPv6Enabled }
+        set { core.isIPv6Enabled = newValue }
+    }
+
     public var isStarted: Bool {
         core.isStarted
     }

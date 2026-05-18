@@ -71,6 +71,11 @@ public final class OSCUDPSocket: OSCUDPSocketProtocol {
         core.isIPv4BroadcastEnabled
     }
 
+    public var isIPv6Enabled: Bool {
+        get { core.isIPv6Enabled }
+        set { core.isIPv6Enabled = newValue }
+    }
+
     public var isStarted: Bool {
         core.isStarted
     }

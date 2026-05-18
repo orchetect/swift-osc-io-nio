@@ -31,6 +31,8 @@ extension OSCUDPServer {
 
         var isPortReuseEnabled: Bool = false
 
+        var isIPv6Enabled: Bool = false
+
         var isStarted: Bool {
             channel?.isActive ?? false
         }
@@ -79,12 +81,14 @@ extension OSCUDPServer.Core {
             // bind to interface, if specified
             let host: String = if let interface {
                 switch interface {
-                case "0.0.0.0", "::": interface // pass thru wildcard
-                default: try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                case "0.0.0.0", "::":
+                    interface // pass thru wildcard
+                default:
+                    try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
                 }
             } else {
                 // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
-                "0.0.0.0" // default to IPv4
+                isIPv6Enabled ? "::" : "0.0.0.0"
             }
 
             let port = Int(_localPort ?? localPort)

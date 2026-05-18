@@ -42,8 +42,9 @@ extension OSCUDPClient {
                     .whenComplete { error in }
             }
         }
-
         private var _isIPv4BroadcastEnabled: Bool = false
+
+        var isIPv6Enabled: Bool = false
 
         var isStarted: Bool {
             channel?.isActive ?? false
@@ -80,8 +81,8 @@ extension OSCUDPClient.Core {
         }
     }
     
-    private func _start(remoteHost: String? = nil) throws {
-        guard !isStarted else { return }
+    private func _start(remoteHost: String? = nil, force: Bool = false) throws {
+        if !force { guard !isStarted else { return } }
         
         _stop()
         
@@ -91,19 +92,21 @@ extension OSCUDPClient.Core {
         // bind to interface, if specified
         let host: String = if let interface {
             switch interface {
-            case "0.0.0.0", "::": interface // pass thru wildcard
-            default: try resolveNetworkDeviceAddress(nameOrAddress: interface)
+            case "0.0.0.0", "::":
+                interface // pass thru wildcard
+            default:
+                try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
             }
         } else {
             // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
-            if let remoteHost {
+            if let remoteHost, isIPv6Enabled {
                 switch try SocketAddress.makeAddressResolvingHost(remoteHost, port: 1).protocol { // port number doesn't matter here
                 case .inet: "0.0.0.0"
                 case .inet6: "::"
-                default: "0.0.0.0" // default to IPv4
+                default: isIPv6Enabled ? "::" : "0.0.0.0"
                 }
             } else {
-                "0.0.0.0" // default to IPv4
+                isIPv6Enabled ? "::" : "0.0.0.0"
             }
         }
         
@@ -143,20 +146,21 @@ extension OSCUDPClient.Core {
     func send(_ packet: OSCPacket, to host: String, port: UInt16) throws {
         try queue.sync {
             if !isStarted {
-                try _start(remoteHost: host)
+                try _start(remoteHost: host, force: true)
             }
 
             guard let channel else {
                 throw OSCIOError.notStarted
             }
-            
+
             // resolve host and port to `SocketAddress`
+            // TODO: NIO forces resolving a hostname to its IPv6 address if one is available, but we want to get its IPv4 address if `isIPv6Enabled` is not true
             let remoteAddress = try SocketAddress.makeAddressResolvingHost(host, port: Int(port))
-            
+
             // create buffer from data
             let data = try packet.rawData()
             let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
-            
+
             let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
             channel.writeAndFlush(envelope, promise: nil)
         }

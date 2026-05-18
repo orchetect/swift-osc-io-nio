@@ -63,6 +63,11 @@ public final class OSCTCPServer: OSCTCPServerProtocol {
         core.interface
     }
 
+    public var isIPv6Enabled: Bool {
+        get { core.isIPv6Enabled }
+        set { core.isIPv6Enabled = newValue }
+    }
+
     public var isStarted: Bool {
         core.isStarted
     }

@@ -29,6 +29,8 @@ extension OSCTCPServer {
 
         let interface: String?
 
+        var isIPv6Enabled: Bool = false
+
         var isStarted: Bool {
             channel?.isActive ?? false
         }
@@ -80,16 +82,14 @@ extension OSCTCPServer.Core {
                 }
 
             // bind to interface, if specified
-            let host: String = if let interface {
+            let host: String = if let interface, isIPv6Enabled {
                 switch interface {
                 case "0.0.0.0", "::": interface // pass thru wildcard
-                default: try resolveNetworkDeviceAddress(nameOrAddress: interface)
+                default: try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
                 }
             } else {
-                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6) for TCP.
-                // Binding to "0.0.0.0" (IPv4) is not enough to make the server connectable through all paths.
-                // We need to bind to "::" (IPv6) which makes the server connectable via both IPv4 and IPv6.
-                "::"
+                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
+                isIPv6Enabled ? "::" : "0.0.0.0"
             }
 
             let port = Int(_localPort ?? localPort)

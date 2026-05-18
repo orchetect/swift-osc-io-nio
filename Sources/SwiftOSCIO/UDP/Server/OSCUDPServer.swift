@@ -52,6 +52,11 @@ public final class OSCUDPServer: OSCUDPServerProtocol {
         set { core.isPortReuseEnabled = newValue }
     }
 
+    public var isIPv6Enabled: Bool {
+        get { core.isIPv6Enabled }
+        set { core.isIPv6Enabled = newValue }
+    }
+
     public var isStarted: Bool {
         core.isStarted
     }

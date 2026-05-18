@@ -34,7 +34,7 @@ func networkDevices(
 }
 
 /// Attempts to resolve the best available IP address for the given network device (interface).
-func resolveNetworkDeviceAddress(nameOrAddress interface: String) throws -> String {
+func resolveSocketAddressString(ofNetworkDeviceNameOrAddress interface: String, isIPv6Enabled: Bool) throws -> String {
     // if the interface is an IP address, we can determine the protocol.
     // if the interface is an interface name, ie: "en0", then defer to priority order of protocols.
     let protocols: [NIOBSDSocket.ProtocolFamily] =
@@ -44,16 +44,20 @@ func resolveNetworkDeviceAddress(nameOrAddress interface: String) throws -> Stri
             [.inet, .inet6, .local]
         }
     
-    let matchingInterfaces = try networkDevices(matchingNameOrAddress: interface, protocols: protocols)
+    var matchingInterfaces = try networkDevices(matchingNameOrAddress: interface, protocols: protocols)
     
-    // Prefer IPv4, then IPv6, then anything available
+    if !isIPv6Enabled {
+        matchingInterfaces = matchingInterfaces.filter { $0.address.protocol != .inet6 }
+    }
+    
+    // Prefer IPv6, then IPv4, then anything available
     let preferredInterface = matchingInterfaces.first(where: {
-        $0.address.protocol == .inet
-        && !($0.address.ipAddress ?? "").lowercased().hasPrefix("169.") // ignore default gateway
+        $0.address.protocol == .inet6
+            && !($0.address.ipAddress ?? "").lowercased().hasPrefix("fe80:") // ignore default gateway
     })
     ?? matchingInterfaces.first(where: {
-        $0.address.protocol == .inet6
-        && !($0.address.ipAddress ?? "").lowercased().hasPrefix("fe80:") // ignore default gateway
+        $0.address.protocol == .inet
+            && !($0.address.ipAddress ?? "").lowercased().hasPrefix("169.") // ignore default gateway
     })
     ?? matchingInterfaces.first
     
@@ -67,13 +71,13 @@ func resolveNetworkDeviceAddress(nameOrAddress interface: String) throws -> Stri
 }
 
 /// Attempts to resolve the best available IP address for the given network device (interface).
-func resolveNetworkDeviceAddress(nameOrAddress interface: String, forRemoteHost remoteHost: String) throws -> String {
+func resolveSocketAddress(ofNetworkDeviceNameOrAddress interface: String, forRemoteHost remoteHost: String) throws -> SocketAddress {
     let address = try SocketAddress.makeAddressResolvingHost(remoteHost, port: 1) // port number doesn't matter, is unused here
-    return try resolveNetworkDeviceAddress(nameOrAddress: interface, forRemoteAddress: address)
+    return try resolveSocketAddress(ofNetworkDeviceNameOrAddress: interface, forRemoteAddress: address)
 }
 
 /// Attempts to resolve the best available IP address for the given network device (interface).
-func resolveNetworkDevice(nameOrAddress interface: String, forRemoteAddress remoteAddress: SocketAddress) throws -> SocketAddress {
+func resolveSocketAddress(ofNetworkDeviceNameOrAddress interface: String, forRemoteAddress remoteAddress: SocketAddress) throws -> SocketAddress {
     // disambiguate IPv4 from IPv6
     var matchingInterfaces = try networkDevices(matchingNameOrAddress: interface, protocols: [remoteAddress.protocol])
     
@@ -90,8 +94,17 @@ func resolveNetworkDevice(nameOrAddress interface: String, forRemoteAddress remo
 }
 
 /// Attempts to resolve the best available IP address for the given network device (interface).
-func resolveNetworkDeviceAddress(nameOrAddress interface: String, forRemoteAddress remoteAddress: SocketAddress) throws -> String {
-    guard let ipAddress = try resolveNetworkDevice(nameOrAddress: interface, forRemoteAddress: remoteAddress).ipAddress else {
+func resolveSocketAddressString(ofNetworkDeviceNameOrAddress interface: String, forRemoteHost remoteHost: String) throws -> String {
+    guard let ipAddress = try resolveSocketAddress(ofNetworkDeviceNameOrAddress: interface, forRemoteHost: remoteHost).ipAddress else {
+        throw OSCIOError.invalidInterface
+    }
+    
+    return ipAddress
+}
+
+/// Attempts to resolve the best available IP address for the given network device (interface).
+func resolveSocketAddressString(ofNetworkDeviceNameOrAddress interface: String, forRemoteAddress remoteAddress: SocketAddress) throws -> String {
+    guard let ipAddress = try resolveSocketAddress(ofNetworkDeviceNameOrAddress: interface, forRemoteAddress: remoteAddress).ipAddress else {
         throw OSCIOError.invalidInterface
     }
     
