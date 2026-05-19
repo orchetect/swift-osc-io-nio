@@ -18,7 +18,14 @@ extension OSCUDPSocket {
         var receiveHandler: OSCPacketHandler?
         var receiveErrorHandler: OSCDecodeErrorHandlerBlock?
 
-        var remoteHost: String?
+        var remoteHost: String? {
+            didSet {
+                // convert empty string to nil
+                if let rh = remoteHost, rh.isEmpty {
+                    remoteHost = nil
+                }
+            }
+        }
 
         var localPort: UInt16 {
             if let port = channel?.localAddress?.port {
@@ -55,7 +62,7 @@ extension OSCUDPSocket {
             queue: DispatchQueue?,
             receiveHandler: OSCPacketHandler?
         ) {
-            self.remoteHost = remoteHost
+            self.remoteHost = (remoteHost ?? "").isEmpty ? nil : remoteHost // convert empty string to nil
             _localPort = (localPort == nil || localPort == 0) ? nil : localPort
             _remotePort = (remotePort == nil || remotePort == 0) ? nil : remotePort
             self.interface = interface
