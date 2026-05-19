@@ -13,13 +13,14 @@ extension OSCUDPServer {
     final class Core {
         typealias Parent = OSCUDPServer
 
-        private var channel: (any Channel)?
+        private var ipv4Channel: (any Channel)?
+        private var ipv6Channel: (any Channel)?
         let queue: DispatchQueue
         var receiveHandler: OSCPacketHandler?
         var receiveErrorHandler: OSCDecodeErrorHandlerBlock?
 
         var localPort: UInt16 {
-            if let port = channel?.localAddress?.port {
+            if let port = ipv4Channel?.localAddress?.port ?? ipv6Channel?.localAddress?.port {
                 return UInt16(port)
             }
             return _localPort ?? 0
@@ -31,10 +32,24 @@ extension OSCUDPServer {
 
         var isPortReuseEnabled: Bool = false
 
-        var isIPv6Enabled: Bool = false
+        var isIPv6Enabled: Bool = true {
+            didSet {
+                if isStarted {
+                    print("Setting isIPv6Enabled will not have any effect until the UDP server is stopped and started again.")
+                }
+            }
+        }
 
         var isStarted: Bool {
-            channel?.isActive ?? false
+            isIPv4Started || isIPv6Started
+        }
+        
+        private var isIPv4Started: Bool {
+            ipv4Channel?.isActive ?? false
+        }
+        
+        private var isIPv6Started: Bool {
+            ipv6Channel?.isActive ?? false
         }
 
         init(
@@ -65,51 +80,72 @@ extension OSCUDPServer.Core: @unchecked Sendable { } // TODO: unchecked
 extension OSCUDPServer.Core {
     func start() throws {
         try queue.sync {
-            guard !isStarted else { return }
-            
-            _stop()
-            
-            let handler = OSCUDPChannelHandler(oscServer: self)
-            
-            let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
-            let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-                .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
-                .channelInitializer { channel in
-                    channel.pipeline.addHandler(handler)
-                }
-
-            // bind to interface, if specified
-            let host: String = if let interface {
-                switch interface {
-                case "0.0.0.0", "::":
-                    interface // pass thru wildcard
-                default:
-                    try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
-                }
-            } else {
-                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
-                isIPv6Enabled ? "::" : "0.0.0.0"
-            }
-
-            let port = Int(_localPort ?? localPort)
-
-            let configuredChannel = try bootstrap
-                .bind(host: host, port: port)
-        
-            channel = try configuredChannel
-                .wait()
+            try _start()
         }
+    }
+    
+    func _start() throws {
+        try _startIPv4()
+        if isIPv6Enabled { try _startIPv6() }
+    }
+    
+    private func _startIPv4() throws {
+        guard !isIPv4Started else { return }
+        if let channel = try _start(isIPv4: true) { ipv4Channel = channel }
+    }
+    
+    private func _startIPv6() throws {
+        guard !isIPv6Started else { return }
+        if let channel = try _start(isIPv4: false) { ipv6Channel = channel }
+    }
+    
+    private func _start(isIPv4: Bool) throws -> (any Channel)? {
+        if isIPv4 { _stopIPv4() } else { _stopIPv6() }
+        
+        let reuseAddress: ChannelOptions.Types.SocketOption.Value = isPortReuseEnabled ? 1 : 0
+        let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+            .channelOption(.socketOption(.so_reuseaddr), value: reuseAddress)
+            .channelInitializer { channel in
+                channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
+            }
+        
+        // bind to interface, if specified
+        let host: String = if let interface {
+            switch interface {
+            case "0.0.0.0", "::":
+                interface // pass thru wildcard
+            default:
+                try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: !isIPv4)
+            }
+        } else {
+            // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
+            isIPv4 ? "0.0.0.0" : "::"
+        }
+        
+        let port = Int(_localPort ?? localPort)
+        
+        let configuredChannel = bootstrap
+            .bind(host: host, port: port)
+        
+        return try configuredChannel
+            .wait()
     }
 
     func stop() {
         queue.sync {
-            _stop()
+            _stopIPv4()
+            _stopIPv6()
         }
     }
     
-    private func _stop() {
-        channel?.close(promise: nil)
-        channel = nil
+    private func _stopIPv4() {
+        try? ipv4Channel?.close().wait()
+        ipv4Channel = nil
+    }
+    
+    private func _stopIPv6() {
+        try? ipv6Channel?.close().wait()
+        ipv6Channel = nil
     }
 }
 

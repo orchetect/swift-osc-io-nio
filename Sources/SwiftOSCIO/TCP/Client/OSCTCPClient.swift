@@ -59,6 +59,11 @@ public final class OSCTCPClient: OSCTCPClientProtocol {
         core.interface
     }
 
+    public var isIPv6Enabled: Bool {
+        get { core.isIPv6Enabled }
+        set { core.isIPv6Enabled = newValue }
+    }
+
     public var isConnected: Bool {
         core.isConnected
     }

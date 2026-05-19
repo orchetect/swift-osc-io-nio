@@ -5,6 +5,7 @@
 //
 
 import NIOCore
+internal import SwiftOSCIOInternals
 
 /// Returns network devices in the system that have an address.
 func networkDevices() throws -> [(name: String, address: SocketAddress)] {
@@ -109,4 +110,23 @@ func resolveSocketAddressString(ofNetworkDeviceNameOrAddress interface: String, 
     }
     
     return ipAddress
+}
+
+/// Attempts to resolve a hostname or IP address to an appropriate IP address.
+func resolveSocketAddress(
+    forHostnameOrIPAddress host: String,
+    port: UInt16,
+    isIPv6Enabled: Bool
+) throws -> SocketAddress {
+    // Note: NIO forces resolving a hostname to its IPv6 address if both IPv4 and IPv6 addresses
+    // are mapped to it, but we want more control over which IP protocol we're asking for.
+    // First try resolving the preferred IP protocol, then defer back to NIO if that fails.
+    if let string = IPUtils.ipAddress(
+        forHostnameOrIPAddress: host,
+        family: isIPv6Enabled ? .ipv6 : .ipv4
+    ) {
+        try SocketAddress(ipAddress: string, port: Int(port))
+    } else {
+        try SocketAddress.makeAddressResolvingHost(host, port: Int(port))
+    }
 }

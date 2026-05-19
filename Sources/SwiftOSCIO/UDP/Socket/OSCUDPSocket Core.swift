@@ -13,7 +13,8 @@ extension OSCUDPSocket {
     final class Core {
         typealias Parent = OSCUDPSocket
 
-        private var channel: (any Channel)?
+        private var ipv4Channel: (any Channel)?
+        private var ipv6Channel: (any Channel)?
         let queue: DispatchQueue
         var receiveHandler: OSCPacketHandler?
         var receiveErrorHandler: OSCDecodeErrorHandlerBlock?
@@ -28,7 +29,7 @@ extension OSCUDPSocket {
         }
 
         var localPort: UInt16 {
-            if let port = channel?.localAddress?.port {
+            if let port = ipv4Channel?.localAddress?.port ?? ipv6Channel?.localAddress?.port{
                 return UInt16(port)
             }
             return _localPort ?? 0
@@ -47,10 +48,24 @@ extension OSCUDPSocket {
 
         let isIPv4BroadcastEnabled: Bool
 
-        var isIPv6Enabled: Bool = false
+        var isIPv6Enabled: Bool = true {
+            didSet {
+                if isStarted {
+                    print("Setting isIPv6Enabled will not have any effect until the UDP socket is stopped and started again.")
+                }
+            }
+        }
 
         var isStarted: Bool {
-            channel?.isActive ?? false
+            isIPv4Started || isIPv6Started
+        }
+        
+        private var isIPv4Started: Bool {
+            ipv4Channel?.isActive ?? false
+        }
+        
+        private var isIPv6Started: Bool {
+            ipv6Channel?.isActive ?? false
         }
 
         init(
@@ -85,58 +100,78 @@ extension OSCUDPSocket.Core: @unchecked Sendable { }
 extension OSCUDPSocket.Core {
     func start() throws {
         try queue.sync {
-            guard !isStarted else { return }
-            
-            let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-            let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
-            let bootstrap = DatagramBootstrap(group: group)
-                .channelOption(.socketOption(.so_broadcast), value: broadcast)
-                .channelInitializer { channel in
-                    channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
-                }
-            
-            // bind to interface, if specified
-            let host: String = if let interface {
-                switch interface {
-                case "0.0.0.0", "::":
-                    interface // pass thru wildcard
-                default:
-                    if let remoteHost {
-                        try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, forRemoteHost: remoteHost)
-                    } else {
-                        try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
-                    }
-                }
-            } else {
-                // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
-                if let remoteHost, isIPv6Enabled {
-                    switch try SocketAddress.makeAddressResolvingHost(remoteHost, port: 1).protocol { // port number doesn't matter here
-                    case .inet: "0.0.0.0"
-                    case .inet6: "::"
-                    default: isIPv6Enabled ? "::" : "0.0.0.0"
-                    }
+            try _start()
+        }
+    }
+    
+    func _start() throws {
+        try _startIPv4()
+        if isIPv6Enabled { try _startIPv6() }
+    }
+    
+    private func _startIPv4() throws {
+        guard !isIPv4Started else { return }
+        if let channel = try _start(isIPv4: true) { ipv4Channel = channel }
+    }
+    
+    private func _startIPv6() throws {
+        guard !isIPv6Started else { return }
+        if let channel = try _start(isIPv4: false) { ipv6Channel = channel }
+    }
+    
+    private func _start(isIPv4: Bool) throws -> (any Channel)? {
+        if isIPv4 { _stopIPv4() } else { _stopIPv6() }
+        
+        let broadcast: ChannelOptions.Types.SocketOption.Value = isIPv4BroadcastEnabled ? 1 : 0
+        let bootstrap = DatagramBootstrap(group: .singletonMultiThreadedEventLoopGroup)
+            .channelOption(.socketOption(.so_broadcast), value: broadcast)
+            .channelInitializer { channel in
+                channel.pipeline.addHandler(OSCUDPChannelHandler(oscServer: self))
+            }
+        
+        // bind to interface, if specified
+        let host: String = if let interface {
+            switch interface {
+            case "0.0.0.0", "::":
+                interface // pass thru wildcard
+            default:
+                if let remoteHost {
+                    try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, forRemoteHost: remoteHost)
                 } else {
-                    isIPv6Enabled ? "::" : "0.0.0.0"
+                    try resolveSocketAddressString(ofNetworkDeviceNameOrAddress: interface, isIPv6Enabled: isIPv6Enabled)
                 }
             }
-            
-            let port = Int(_localPort ?? localPort)
-            
-            let configuredChannel = try bootstrap
-                .bind(host: host, port: port)
-            
-            let waitingChannel = try configuredChannel
-                .wait()
-            
-            channel = waitingChannel
+        } else {
+            // Don't bind to "localhost", "127.0.0.1" (IPv4) or "::1" (IPv6)
+            isIPv4 ? "0.0.0.0" : "::"
         }
+        
+        let port = Int(_localPort ?? localPort)
+        
+        let configuredChannel = bootstrap
+            .bind(host: host, port: port)
+        
+        let waitingChannel = try configuredChannel
+            .wait()
+        
+        return waitingChannel
     }
 
     func stop() {
         queue.sync {
-            try? channel?.close().wait()
-            channel = nil
+            _stopIPv4()
+            _stopIPv6()
         }
+    }
+    
+    private func _stopIPv4() {
+        try? ipv4Channel?.close().wait()
+        ipv4Channel = nil
+    }
+    
+    private func _stopIPv6() {
+        try? ipv6Channel?.close().wait()
+        ipv6Channel = nil
     }
 }
 
@@ -153,25 +188,33 @@ extension OSCUDPSocket.Core {
                 throw OSCIOError.notStarted
             }
             
+            let port = port ?? remotePort
+            
+            guard let host = host ?? remoteHost else {
+                throw OSCIOError.noRemoteHost
+            }
+            
+            // resolve host and port to `SocketAddress`
+            let remoteAddress = try resolveSocketAddress(forHostnameOrIPAddress: host, port: port, isIPv6Enabled: isIPv6Enabled)
+            
+            // use corresponding channel for IP protocol
+            let channel = switch remoteAddress.protocol {
+            case .inet: ipv4Channel
+            case .inet6: ipv6Channel
+            default: throw OSCIOError.noRemoteHost
+            }
+            
             guard let channel else {
                 throw OSCIOError.notStarted
             }
             
-            guard let toHost = host ?? remoteHost else {
-                throw OSCIOError.noRemoteHost
-            }
-            
+            // create buffer from data
             let data = try packet.rawData()
-            
-            let port = Int(port ?? remotePort)
-            
-            let remoteAddress = try SocketAddress.makeAddressResolvingHost(toHost, port: port)
-            
             let buffer: ByteBuffer = channel.allocator.buffer(bytes: data)
             
             let envelope = AddressedEnvelope(remoteAddress: remoteAddress, data: buffer)
-            
-            try channel.writeAndFlush(envelope).wait()
+            try channel.writeAndFlush(envelope)
+                .wait()
         }
     }
 }

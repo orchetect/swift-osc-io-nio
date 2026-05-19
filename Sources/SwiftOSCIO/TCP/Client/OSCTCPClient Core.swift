@@ -23,6 +23,15 @@ extension OSCTCPClient {
         let remoteHost: String
         let remotePort: UInt16
         let interface: String?
+        
+        var isIPv6Enabled: Bool = false {
+            didSet {
+                if isConnected {
+                    print("Setting isIPv6Enabled will not have any effect until the TCP client is disconnected and reconnected again.")
+                }
+            }
+        }
+        
         var isConnected: Bool {
             channel?.isActive ?? false
         }
@@ -94,9 +103,15 @@ extension OSCTCPClient.Core {
                     .bind(to: interfaceAddress)
             }
 
+            let resolvedAddress = try resolveSocketAddress(
+                forHostnameOrIPAddress: remoteHost,
+                port: remotePort,
+                isIPv6Enabled: isIPv6Enabled
+            )
+
             // connect to host
             let configuredChannel = try bootstrap
-                .connect(host: remoteHost, port: Int(remotePort))
+                .connect(to: resolvedAddress)
                 .wait()
             
             channel = configuredChannel

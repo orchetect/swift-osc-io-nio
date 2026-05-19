@@ -29,7 +29,13 @@ extension OSCTCPServer {
 
         let interface: String?
 
-        var isIPv6Enabled: Bool = false
+        var isIPv6Enabled: Bool = false {
+            didSet {
+                if isStarted {
+                    print("Setting isIPv6Enabled will not have any effect until the TCP server is stopped and restarted again.")
+                }
+            }
+        }
 
         var isStarted: Bool {
             channel?.isActive ?? false
@@ -94,7 +100,7 @@ extension OSCTCPServer.Core {
 
             let port = Int(_localPort ?? localPort)
 
-            let configuredChannel = try bootstrap
+            let configuredChannel = bootstrap
                 .bind(host: host, port: port)
             
             channel = try configuredChannel
