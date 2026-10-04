@@ -17,6 +17,7 @@ extension OSCUDPServer {
         let syncQueue = DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPServer.Core.syncQueue", target: .global())
 
         let queue: DispatchQueue
+        private let queueKey = DispatchSpecificKey<Void>()
 
         // anywhere that we are assigning this variable, it is wrapped in sync calls to `queue`
         // so we don't need to wrap it with `syncQueue` to synchronize
@@ -120,6 +121,7 @@ extension OSCUDPServer {
                 target: .global() // do NOT use syncQueue
             )
             self.queue = queue
+            queue.setSpecific(key: queueKey, value: ())
             _receiveHandler = receiveHandler
         }
 
@@ -134,6 +136,14 @@ extension OSCUDPServer.Core: Sendable { }
 // MARK: - Lifecycle
 
 extension OSCUDPServer.Core {
+    private func syncOnQueue<T>(_ operation: () throws -> T) rethrows -> T {
+        if DispatchQueue.getSpecific(key: queueKey) != nil {
+            return try operation()
+        }
+
+        return try queue.sync(execute: operation)
+    }
+    
     func start() throws {
         try queue.sync {
             try _start()
@@ -195,7 +205,7 @@ extension OSCUDPServer.Core {
     }
 
     func stop() {
-        queue.sync {
+        syncOnQueue {
             _stopIPv4()
             _stopIPv6()
         }
