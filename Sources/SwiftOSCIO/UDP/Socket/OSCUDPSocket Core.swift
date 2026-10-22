@@ -17,6 +17,7 @@ extension OSCUDPSocket {
         let syncQueue = DispatchQueue(label: "com.orchetect.SwiftOSC.OSCUDPSocket.Core.syncQueue", target: .global())
 
         let queue: DispatchQueue
+        private let queueKey = DispatchSpecificKey<Void>()
 
         // anywhere that we are assigning this variable, it is wrapped in sync calls to `queue`
         // so we don't need to wrap it with `syncQueue` to synchronize
@@ -138,6 +139,7 @@ extension OSCUDPSocket {
                 target: .global() // do NOT use syncQueue
             )
             self.queue = queue
+            queue.setSpecific(key: queueKey, value: ())
             self.receiveHandler = receiveHandler
         }
 
@@ -153,7 +155,7 @@ extension OSCUDPSocket.Core: Sendable { }
 
 extension OSCUDPSocket.Core {
     func start() throws {
-        try queue.sync {
+        try syncOnQueue {
             try _start()
         }
     }
@@ -214,7 +216,7 @@ extension OSCUDPSocket.Core {
     }
 
     func stop() {
-        queue.sync {
+        syncOnQueue {
             _stopIPv4()
             _stopIPv6()
         }
@@ -231,6 +233,18 @@ extension OSCUDPSocket.Core {
     }
 }
 
+// MARK: - Queue Utilities
+
+extension OSCUDPSocket.Core {
+    private func syncOnQueue<T>(_ operation: () throws -> T) rethrows -> T {
+        if DispatchQueue.getSpecific(key: queueKey) != nil {
+            try operation()
+        } else {
+            try queue.sync(execute: operation)
+        }
+    }
+}
+
 // MARK: - Communication
 
 extension OSCUDPSocket.Core: _OSCPacketDispatcherProtocol {
@@ -239,7 +253,7 @@ extension OSCUDPSocket.Core: _OSCPacketDispatcherProtocol {
 
 extension OSCUDPSocket.Core {
     func send(_ packet: OSCPacket, to host: String?, port: UInt16?) throws {
-        try queue.sync {
+        try syncOnQueue {
             guard isStarted else {
                 throw OSCIOError.notStarted
             }

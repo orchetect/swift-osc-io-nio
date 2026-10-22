@@ -17,6 +17,9 @@ extension OSCTCPServer {
         /// Internal queue used for synchronizing access to mutable properties.
         let syncQueue = DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPServer.Core.syncQueue", target: .global())
 
+        let queue: DispatchQueue
+        private let queueKey = DispatchSpecificKey<Void>()
+
         // anywhere that we are assigning this variable, it is wrapped in sync calls to `queue`
         // so we don't need to wrap it with `syncQueue` to synchronize
         nonisolated(unsafe) private var ipv4Channel: (any Channel)?
@@ -41,8 +44,6 @@ extension OSCTCPServer {
         }
 
         nonisolated(unsafe) private var __clients: [OSCTCPClientSessionID: ClientConnection] = [:]
-
-        let queue: DispatchQueue
 
         var receiveHandler: OSCPacketHandler? {
             get { syncQueue.sync { _receiveHandler } }
@@ -139,7 +140,9 @@ extension OSCTCPServer {
                 label: "com.orchetect.SwiftOSC.OSCTCPServer.queue",
                 target: .global() // do NOT use syncQueue
             )
+            queue.setSpecific(key: queueKey, value: ())
             self.queue = queue
+
             _receiveHandler = receiveHandler
         }
 
@@ -155,7 +158,7 @@ extension OSCTCPServer.Core: Sendable { }
 
 extension OSCTCPServer.Core {
     func start() throws {
-        try queue.sync {
+        try syncOnQueue {
             try _start()
         }
     }
@@ -246,7 +249,7 @@ extension OSCTCPServer.Core {
     }
 
     func stop() {
-        queue.sync {
+        syncOnQueue {
             _stopIPv4()
             _stopIPv6()
         }
@@ -260,6 +263,18 @@ extension OSCTCPServer.Core {
     private func _stopIPv6() {
         try? ipv6Channel?.close().wait()
         ipv6Channel = nil
+    }
+}
+
+// MARK: - Queue Utilities
+
+extension OSCTCPServer.Core {
+    private func syncOnQueue<T>(_ operation: () throws -> T) rethrows -> T {
+        if DispatchQueue.getSpecific(key: queueKey) != nil {
+            try operation()
+        } else {
+            try queue.sync(execute: operation)
+        }
     }
 }
 
@@ -367,7 +382,7 @@ extension OSCTCPServer.Core {
 
     /// Generate a new client ID that is not currently in use by any connected client(s).
     private func newClientID() -> OSCTCPClientSessionID {
-        queue.sync {
+        syncOnQueue {
             var clientID = 0
             while clientID == 0 || _clients.keys.contains(clientID) {
                 // don't allow 0 or negative numbers
@@ -381,7 +396,7 @@ extension OSCTCPServer.Core {
 
     /// Close a connection and remove it from the list of connected clients.
     func closeClient(clientID: Int) {
-        queue.sync {
+        syncOnQueue {
             _clients[clientID]?.close()
             _clients[clientID] = nil
         }

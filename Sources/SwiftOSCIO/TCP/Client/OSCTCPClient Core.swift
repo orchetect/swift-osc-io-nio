@@ -17,11 +17,12 @@ extension OSCTCPClient {
         /// Internal queue used for synchronizing access to mutable properties.
         let syncQueue = DispatchQueue(label: "com.orchetect.SwiftOSC.OSCTCPClient.Core.syncQueue", target: .global())
 
+        let queue: DispatchQueue
+        private let queueKey = DispatchSpecificKey<Void>()
+
         // anywhere that we are assigning this variable, it is wrapped in sync calls to `queue`
         // so we don't need to wrap it with `syncQueue` to synchronize
         nonisolated(unsafe) var channel: (any Channel)?
-
-        let queue: DispatchQueue
 
         var receiveHandler: OSCPacketHandler? {
             get { syncQueue.sync { _receiveHandler } }
@@ -104,6 +105,7 @@ extension OSCTCPClient {
                 target: .global() // do NOT use syncQueue
             )
             self.queue = queue
+            queue.setSpecific(key: queueKey, value: ())
             _receiveHandler = receiveHandler
         }
 
@@ -119,7 +121,7 @@ extension OSCTCPClient.Core: Sendable { }
 
 extension OSCTCPClient.Core {
     func connect(timeout: TimeInterval) throws {
-        try queue.sync {
+        try syncOnQueue {
             // sanitize inputs
             // negative values mean indefinite (no timeout) which is a bit dangerous
             let timeout = Int64(max(1.0, timeout))
@@ -201,11 +203,23 @@ extension OSCTCPClient.Core {
     }
 
     func close() {
-        queue.sync {
+        syncOnQueue {
             // close the connection
             channel?.close(promise: nil)
             // deallocate channel
             channel = nil
+        }
+    }
+}
+
+// MARK: - Queue Utilities
+
+extension OSCTCPClient.Core {
+    private func syncOnQueue<T>(_ operation: () throws -> T) rethrows -> T {
+        if DispatchQueue.getSpecific(key: queueKey) != nil {
+            try operation()
+        } else {
+            try queue.sync(execute: operation)
         }
     }
 }
